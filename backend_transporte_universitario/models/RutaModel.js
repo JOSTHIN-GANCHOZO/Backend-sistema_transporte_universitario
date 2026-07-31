@@ -5,15 +5,17 @@ export const RutaModel = sequelize.define('Ruta', {
   id_ruta: { 
     type: DataTypes.INTEGER, 
     primaryKey: true, 
-    autoIncrement: true },
+    autoIncrement: true 
+  },
   codigo: { 
     type: DataTypes.STRING(20), 
-    allowNull: false
+    allowNull: false,
+    unique: true
   },
   nombre: { 
     type: DataTypes.STRING(100), 
     allowNull: false
-   },
+  },
   origen: { 
     type: DataTypes.STRING(150), 
     allowNull: false 
@@ -23,12 +25,21 @@ export const RutaModel = sequelize.define('Ruta', {
     allowNull: false
   },
   distancia_estimada: { 
-    type: DataTypes.DECIMAL(8, 2) },
+    type: DataTypes.DECIMAL(8, 2),
+    validate: {
+      min: 0
+    }
+  },
   duracion_aproximada: { 
-    type: DataTypes.TIME }
+    type: DataTypes.TIME 
+  }
 }, {
   tableName: 'Ruta',
-  timestamps: false
+  timestamps: true,
+  createdAt: false,
+  updatedAt: false,
+  deletedAt: 'fecha_eliminacion',
+  paranoid: true
 });
 
 export default RutaModel;

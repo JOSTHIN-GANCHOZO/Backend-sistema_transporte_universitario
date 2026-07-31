@@ -10,7 +10,7 @@ export const CredencialModel = sequelize.define('Credencial', {
   id_usuario: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    unique: true, // Asegura que sea una relación 1 a 1 exacta
+    unique: true, 
     references: {
       model: 'Usuario',
       key: 'id_usuario'
@@ -19,6 +19,15 @@ export const CredencialModel = sequelize.define('Credencial', {
   password: {
     type: DataTypes.STRING(255),
     allowNull: false
+  },
+  estado: {
+    type: DataTypes.ENUM('ACTIVA', 'BLOQUEADA', 'INACTIVA'),
+    allowNull: false,
+    defaultValue: 'ACTIVA'
+  },
+  ultimo_acceso: {
+    type: DataTypes.DATE,
+    allowNull: true
   }
 }, {
   tableName: 'Credencial',

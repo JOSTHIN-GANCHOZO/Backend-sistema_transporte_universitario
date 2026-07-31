@@ -6,19 +6,23 @@ export const ReservaModel = sequelize.define('Reserva', {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
-   },
+  },
   fecha: {
-     type: DataTypes.DATEONLY,
-     allowNull: false, 
-     defaultValue: DataTypes.NOW
-     },
+    type: DataTypes.DATEONLY,
+    allowNull: false, 
+    defaultValue: DataTypes.NOW
+  },
   numero_asiento: { 
     type: DataTypes.INTEGER, 
-    allowNull: false
-   },
+    allowNull: false,
+    validate: {
+      min: 1
+    }
+  },
   estado: {
     type: DataTypes.ENUM('PENDIENTE', 'CONFIRMADA', 'UTILIZADA', 'CANCELADA'),
-    allowNull: false
+    allowNull: false,
+    defaultValue: 'CONFIRMADA'
   },
   id_usuario: {
     type: DataTypes.INTEGER,
@@ -32,7 +36,11 @@ export const ReservaModel = sequelize.define('Reserva', {
   }
 }, {
   tableName: 'Reserva',
-  timestamps: false
+  timestamps: true,
+  createdAt: false,
+  updatedAt: false,
+  deletedAt: 'fecha_eliminacion',
+  paranoid: true
 });
 
 export default ReservaModel;

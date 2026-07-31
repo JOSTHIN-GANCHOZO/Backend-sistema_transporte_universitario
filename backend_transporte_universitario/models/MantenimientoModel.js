@@ -12,8 +12,16 @@ export const MantenimientoModel = sequelize.define('Mantenimiento', {
     allowNull: false 
   },
   fecha_fin: { 
-    type: DataTypes.DATEONLY
-   },
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    validate: {
+      isAfterOrEqualFechaInicio(value) {
+        if (value && this.fecha_inicio && new Date(value) < new Date(this.fecha_inicio)) {
+          throw new Error('La fecha de fin no puede ser anterior a la fecha de inicio.');
+        }
+      }
+    }
+  },
   tipo_mantenimiento: { 
     type: DataTypes.STRING(100) 
   },
@@ -21,9 +29,13 @@ export const MantenimientoModel = sequelize.define('Mantenimiento', {
     type: DataTypes.TEXT 
   },
   costo: { 
-    type: DataTypes.DECIMAL(10, 2) },
+    type: DataTypes.DECIMAL(10, 2),
+    defaultValue: 0.00
+  },
   estado: { 
-    type: DataTypes.STRING(50) 
+    type: DataTypes.ENUM('PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CANCELADO'),
+    allowNull: false,
+    defaultValue: 'EN_PROCESO'
   },
   id_autobus: {
     type: DataTypes.INTEGER,
@@ -32,7 +44,11 @@ export const MantenimientoModel = sequelize.define('Mantenimiento', {
   }
 }, {
   tableName: 'Mantenimiento',
-  timestamps: false
+  timestamps: true,
+  createdAt: false,
+  updatedAt: false,
+  deletedAt: 'fecha_eliminacion',
+  paranoid: true
 });
 
 export default MantenimientoModel;

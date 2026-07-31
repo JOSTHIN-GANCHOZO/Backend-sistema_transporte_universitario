@@ -12,10 +12,22 @@ export const RutaParadaModel = sequelize.define('Ruta_Parada', {
     primaryKey: true,
     references: { model: 'Parada', key: 'id_parada' }
   },
-  orden: { type: DataTypes.INTEGER, allowNull: false }
+  orden: { 
+    type: DataTypes.INTEGER, 
+    allowNull: false,
+    validate: {
+      min: 1
+    }
+  }
 }, {
   tableName: 'Ruta_Parada',
-  timestamps: false
+  timestamps: false,
+  indexes: [
+    {
+      unique: true,
+      fields: ['id_ruta', 'orden']
+    }
+  ]
 });
 
 export default RutaParadaModel;

@@ -35,7 +35,11 @@ export const NotificacionModel = sequelize.define('Notificacion', {
   }
 }, {
   tableName: 'Notificacion',
-  timestamps: false
+  timestamps: true,
+  createdAt: 'fecha_creacion',
+  updatedAt: false,
+  deletedAt: 'fecha_eliminacion',
+  paranoid: true
 });
 
 export default NotificacionModel;

@@ -1,22 +1,22 @@
 import { DataTypes } from 'sequelize';
 import { sequelize } from '../db/conexion.js';
 
-export const RolModel = sequelize.define('Rol', {
-  id_rol: {
+export const PermisoModel = sequelize.define('Permiso', {
+  id_permiso: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
   nombre: {
-    type: DataTypes.STRING(50),
+    type: DataTypes.STRING(100),
     allowNull: false,
     unique: true
   },
   descripcion: {
-    type: DataTypes.STRING(255)
+    type: DataTypes.STRING(200)
   }
 }, {
-  tableName: 'Rol',
+  tableName: 'Permiso',
   timestamps: true,
   createdAt: false,
   updatedAt: false,
@@ -24,4 +24,4 @@ export const RolModel = sequelize.define('Rol', {
   paranoid: true
 });
 
-export default RolModel;
+export default PermisoModel;

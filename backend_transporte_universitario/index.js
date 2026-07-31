@@ -1,12 +1,26 @@
-import { sequelize, Usuario, Autobus } from './models/index.js';
+import app from './app.js';
+import { sequelize } from './models/index.js';
 
-async function main() {
-  try {
-    await sequelize.sync({ force: false });
-    console.log('Base de datos conectada correctamente.');
-  } catch (error) {
-    console.error('Error al conectar la base de datos:', error);
-  }
+const PORT = process.env.PORT || 3000;
+
+async function iniciarServidor() {
+
+    try {
+        // Verificar conexión
+        await sequelize.authenticate();
+        console.log('✅ Conexión a MySQL establecida.');
+        // Crear tablas si no existen
+       await sequelize.sync({ alter: true });
+
+        console.log('✅ Modelos sincronizados.');
+        // Levantar servidor
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor iniciado en http://localhost:${PORT}`);
+        });
+    } catch (error) {
+        console.error('❌ Error al iniciar el servidor');
+        console.error(error);
+    }
 }
 
-main();
+iniciarServidor();

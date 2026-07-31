@@ -12,7 +12,8 @@ import Viaje from './ViajeModel.js';
 import Reserva from './ReservaModel.js';
 import Rol from './RolModel.js';
 import Credencial from './CredencialModel.js';
-import Notificacion from './NotificacionModel.js'
+import Notificacion from './NotificacionModel.js';
+import Permiso from './PermisosModel.js';
 
 
 //Rol - Usuario  de 1 a muchos  
@@ -72,6 +73,18 @@ Reserva.belongsTo(Usuario, { foreignKey: 'id_usuario' });
 Viaje.hasMany(Reserva, { foreignKey: 'id_viaje' });
 Reserva.belongsTo(Viaje, { foreignKey: 'id_viaje' });
 
+Rol.belongsToMany(Permiso, {
+    through: 'Rol_Permiso',
+    foreignKey: 'id_rol',
+    otherKey: 'id_permiso'
+});
+
+Permiso.belongsToMany(Rol, {
+    through: 'Rol_Permiso',
+    foreignKey: 'id_permiso',
+    otherKey: 'id_rol'
+});
+
 export {
   sequelize,
   Usuario,
@@ -87,4 +100,5 @@ export {
   Rol,
   Credencial,
   Notificacion,
+  Permiso
 };

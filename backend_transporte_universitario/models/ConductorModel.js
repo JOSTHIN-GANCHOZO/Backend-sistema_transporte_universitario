@@ -9,7 +9,8 @@ export const ConductorModel = sequelize.define('Conductor', {
    },
   identificacion: { 
     type: DataTypes.STRING(20), 
-    allowNull: false
+    allowNull: false,
+    unique: true
    },
   nombres: { type: DataTypes.STRING(100), 
     allowNull: false
@@ -22,20 +23,28 @@ export const ConductorModel = sequelize.define('Conductor', {
     type: DataTypes.STRING(20)
    },
   correo: { 
-    type: DataTypes.STRING(100)
+    type: DataTypes.STRING(100),
+    validate: {
+      isEmail: true
+    }
    },
   numero_licencia: { 
     type: DataTypes.STRING(50), 
-    allowNull: false 
+    allowNull: false,
+    unique: true
   },
   fecha_vencimiento_licencia: { 
     type: DataTypes.DATEONLY, 
     allowNull: false }
 }, 
-{tableName: 'Conductor',
-  timestamps: false
+{
+  tableName: 'Conductor',
+  timestamps: true,
+  createdAt: false,
+  updatedAt: false,
+  deletedAt: 'fecha_eliminacion',
+  paranoid: true
 }
-  
 );
 
 export default ConductorModel;

@@ -7,12 +7,16 @@ export const AutobusModel = sequelize.define('Autobus', {
     primaryKey: true, 
     autoIncrement: true 
   },
-  placa: { type: DataTypes.STRING(10),
-     allowNull: false 
+  placa: { 
+    type: DataTypes.STRING(10),
+    allowNull: false,
+    unique: true 
   },
   numero_interno: { 
     type: DataTypes.STRING(20), 
-    allowNull: false },
+    allowNull: false,
+    unique: true 
+  },
   marca: { 
     type: DataTypes.STRING(50)
   },
@@ -23,14 +27,22 @@ export const AutobusModel = sequelize.define('Autobus', {
   },
   capacidad_maxima: { 
     type: DataTypes.INTEGER, 
-    allowNull: false },
+    allowNull: false,
+    validate: {
+      min: 1
+    }
+  },
   estado: {
     type: DataTypes.ENUM('DISPONIBLE', 'EN_SERVICIO', 'EN_MANTENIMIENTO', 'FUERA_DE_SERVICIO'),
     allowNull: false
   }
 }, {
   tableName: 'Autobus',
-  timestamps: false
+  timestamps: true,
+  createdAt: false,
+  updatedAt: false,
+  deletedAt: 'fecha_eliminacion',
+  paranoid: true
 });
 
 export default AutobusModel;
