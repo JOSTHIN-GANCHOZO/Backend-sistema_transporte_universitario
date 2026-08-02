@@ -5,6 +5,7 @@ import rolRoutes from './router/RolRouter.js';
 import permisoRoutes from './router/PermisoRouter.js';
 import usuarioRoutes from './router/UsuarioRouter.js';
 import credencialRoutes from './router/CredencialRouter.js';
+import autobusRoutes from './router/AutobusRouter.js';
 
 const app = express();
 app.use(cors());
@@ -17,4 +18,5 @@ app.use('/api/roles', rolRoutes);
 app.use('/api/permisos', permisoRoutes);
 app.use('/api/usuarios', usuarioRoutes);
 app.use('/api/credenciales', credencialRoutes);
+app.use('/api/autobuses', autobusRoutes);
 export default app;
