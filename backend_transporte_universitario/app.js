@@ -11,6 +11,7 @@ import rutaRoutes from './router/RutaRouter.js';
 import paradaRoutes from './router/ParadaRouter.js';
 import reservaRoutes from './router/ReservaRouter.js';
 import notificacionRoutes from './router/NotificacionRouter.js';
+import mantenimientoRoutes from './router/MantenimientoRouter.js';
 
 const app = express();
 app.use(cors());
@@ -29,4 +30,5 @@ app.use('/api/rutas', rutaRoutes);
 app.use('/api/paradas', paradaRoutes);
 app.use('/api/reservas', reservaRoutes);
 app.use('/api/notificaciones', notificacionRoutes);
+app.use('/api/mantenimientos', mantenimientoRoutes);
 export default app;
