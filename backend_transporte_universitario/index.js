@@ -9,8 +9,8 @@ async function iniciarServidor() {
         // Verificar conexión
         await sequelize.authenticate();
         console.log('✅ Conexión a MySQL establecida.');
-        // Crear tablas si no existen
-       await sequelize.sync({ alter: true });
+        // Sincronizar modelos sin alter para no crear índices duplicados.
+        await sequelize.sync();
 
         console.log('✅ Modelos sincronizados.');
         // Levantar servidor
