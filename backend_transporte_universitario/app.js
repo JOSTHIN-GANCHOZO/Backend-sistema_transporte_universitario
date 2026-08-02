@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+<<<<<<< HEAD
 import viajeRoutes from './router/ViajeRouter.js';
 import rolRoutes from './router/RolRouter.js';
 import permisoRoutes from './router/PermisoRouter.js';
@@ -12,10 +13,14 @@ import paradaRoutes from './router/ParadaRouter.js';
 import reservaRoutes from './router/ReservaRouter.js';
 import notificacionRoutes from './router/NotificacionRouter.js';
 import mantenimientoRoutes from './router/MantenimientoRouter.js';
+=======
+import router from './router/index.js';
+>>>>>>> origin/develop
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/api', router);
 // ===============================
 // Rutas
 // ===============================
