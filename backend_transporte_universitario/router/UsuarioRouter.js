@@ -8,7 +8,7 @@ import {
   activarAccesoUsuario,
   eliminarUsuario,
   restaurarUsuario
-} from '../controllers/usuario.controller.js'; // Ajusta la ruta según tu estructura de carpetas
+} from '../controller/UsuarioController.js';
 
 const router = Router();
 
