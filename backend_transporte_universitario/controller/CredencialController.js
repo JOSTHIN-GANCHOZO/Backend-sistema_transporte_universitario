@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { Credencial, Usuario } from '../models/index.js';
 
 export const obtenerCredencialPorUsuario = async (req, res) => {
@@ -55,9 +56,11 @@ export const crearCredencial = async (req, res) => {
       return res.status(400).json({ mensaje: 'El usuario ya tiene una credencial registrada.' });
     }
 
+    const passwordHash = await bcrypt.hash(password, 10);
+
     const nuevaCredencial = await Credencial.create({
       id_usuario: Number(id_usuario),
-      password, // Idealmente se debería hashear con bcrypt antes de guardar
+      password: passwordHash,
       estado: 'ACTIVA'
     });
 
@@ -91,7 +94,9 @@ export const actualizarPassword = async (req, res) => {
       return res.status(404).json({ mensaje: 'Credencial no encontrada.' });
     }
 
-    await credencial.update({ password });
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await credencial.update({ password: passwordHash });
     return res.status(200).json({ mensaje: 'Contraseña actualizada correctamente.' });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al actualizar contraseña', error: error.message });

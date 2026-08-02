@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { verifyToken } from '../middleware/auth.js';
+import { requireRol } from '../middleware/roles.js';
 import {
   obtenerAsignaciones,
   crearAsignacion,
@@ -7,13 +9,13 @@ import {
 
 const router = Router();
 
-// Listar todas las asignaciones
-router.get('/', obtenerAsignaciones);
+// Listar todas las asignaciones (solo admin)
+router.get('/', verifyToken, requireRol(['ADMINISTRADOR']), obtenerAsignaciones);
 
-// Crear una asignación (asignar conductor a autobús)
-router.post('/', crearAsignacion);
+// Crear una asignaci��n (asignar conductor a autobǧs) (solo admin)
+router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearAsignacion);
 
-// Eliminar una asignación (soft delete)
-router.delete('/:id_autobus/:id_conductor', eliminarAsignacion);
+// Eliminar una asignaci��n (soft delete) (solo admin)
+router.delete('/:id_autobus/:id_conductor', verifyToken, requireRol(['ADMINISTRADOR']), eliminarAsignacion);
 
 export default router;
