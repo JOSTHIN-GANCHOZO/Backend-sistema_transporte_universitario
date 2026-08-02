@@ -9,6 +9,11 @@ export const DB_USERNAME = process.env.DB_USERNAME;
 export const DB_PASSWORD = process.env.DB_PASSWORD;
 export const PORT = process.env.PORT;
 export const TOKEN_KEY = process.env.TOKEN_KEY;
+export const ADMIN_CORREO = process.env.ADMIN_CORREO;
+export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+export const ADMIN_IDENTIFICACION = process.env.ADMIN_IDENTIFICACION;
+export const ADMIN_NOMBRES = process.env.ADMIN_NOMBRES;
+export const ADMIN_APELLIDOS = process.env.ADMIN_APELLIDOS;
 
 
 
