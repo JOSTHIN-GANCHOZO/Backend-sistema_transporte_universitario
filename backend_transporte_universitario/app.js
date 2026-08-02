@@ -10,6 +10,7 @@ import conductorRoutes from './router/ConductorRouter.js';
 import rutaRoutes from './router/RutaRouter.js';
 import paradaRoutes from './router/ParadaRouter.js';
 import reservaRoutes from './router/ReservaRouter.js';
+import notificacionRoutes from './router/NotificacionRouter.js';
 
 const app = express();
 app.use(cors());
@@ -27,4 +28,5 @@ app.use('/api/conductores', conductorRoutes);
 app.use('/api/rutas', rutaRoutes);
 app.use('/api/paradas', paradaRoutes);
 app.use('/api/reservas', reservaRoutes);
+app.use('/api/notificaciones', notificacionRoutes);
 export default app;
