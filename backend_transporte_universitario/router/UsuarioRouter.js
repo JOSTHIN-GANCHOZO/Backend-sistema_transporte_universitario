@@ -8,11 +8,7 @@ import {
   activarAccesoUsuario,
   eliminarUsuario,
   restaurarUsuario
-<<<<<<< HEAD
 } from '../controller/UsuarioController.js';
-=======
-} from '../controller/UsuarioController.js'; 
->>>>>>> origin/develop
 
 const router = Router();
 // --- RUTAS PRINCIPALES (CRUD) ---
