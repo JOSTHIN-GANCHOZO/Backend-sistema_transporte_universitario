@@ -13,6 +13,7 @@ import reservaRoutes from './router/ReservaRouter.js';
 import notificacionRoutes from './router/NotificacionRouter.js';
 import mantenimientoRoutes from './router/MantenimientoRouter.js';
 import autobusConductorRoutes from './router/AutobusConductorRouter.js';
+import rutaParadaRoutes from './router/RutaParadaRouter.js';
 
 const app = express();
 app.use(cors());
@@ -34,4 +35,5 @@ app.use('/api/reservas', reservaRoutes);
 app.use('/api/notificaciones', notificacionRoutes);
 app.use('/api/mantenimientos', mantenimientoRoutes);
 app.use('/api/autobus-conductores', autobusConductorRoutes);
+app.use('/api/ruta-paradas', rutaParadaRoutes);
 export default app;
