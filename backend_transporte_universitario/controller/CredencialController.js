@@ -81,6 +81,14 @@ export const actualizarPassword = async (req, res) => {
       return res.status(400).json({ mensaje: 'El ID de usuario no es válido.' });
     }
 
+    // Regla de negocio: solo el propio usuario o un administrador puede cambiar la contraseña
+    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
+    const esElMismoUsuario = req.user && Number(req.user.id_usuario) === Number(id_usuario);
+
+    if (!esElMismoUsuario && !esAdministrador) {
+      return res.status(403).json({ mensaje: 'No tienes permiso para cambiar la contraseña de otro usuario.' });
+    }
+
     if (!password || typeof password !== 'string' || !password.trim()) {
       return res.status(400).json({ mensaje: 'La nueva contraseña es obligatoria.' });
     }
