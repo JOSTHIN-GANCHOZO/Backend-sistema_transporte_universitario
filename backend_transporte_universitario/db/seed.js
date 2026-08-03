@@ -51,7 +51,7 @@ async function seed() {
       console.log('ℹ️  La credencial del administrador ya existe. No se modifica la contraseña.');
     }
 
-    console.log(`\n🔐 Acceso inicial: ${ADMIN_CORREO.toLowerCase()} / ${ADMIN_PASSWORD}`);
+    console.log(`\n🔐 Usuario administrador listo: ${ADMIN_CORREO.toLowerCase()}. La contraseña es la definida en el archivo .env.`);
     await sequelize.close();
     console.log('✅ Seed completado.');
   } catch (error) {
