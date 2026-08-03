@@ -12,10 +12,10 @@ const router = Router();
 // Listar todas las asignaciones (solo admin)
 router.get('/', verifyToken, requireRol(['ADMINISTRADOR']), obtenerAsignaciones);
 
-// Crear una asignaci��n (asignar conductor a autobǧs) (solo admin)
+// Crear una asignación (asignar conductor a autobús) (solo admin)
 router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearAsignacion);
 
-// Eliminar una asignaci��n (soft delete) (solo admin)
+// Eliminar una asignación (soft delete) (solo admin)
 router.delete('/:id_autobus/:id_conductor', verifyToken, requireRol(['ADMINISTRADOR']), eliminarAsignacion);
 
 export default router;

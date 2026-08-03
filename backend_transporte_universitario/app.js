@@ -12,7 +12,7 @@ app.use(helmet());
 
 // CORS restringido a orígenes permitidos
 app.use(cors({
-  origin: CORS_ORIGIN ? CORS_ORIGIN.split(',') : true
+  origin: CORS_ORIGIN ? CORS_ORIGIN.split(',').map(origen => origen.trim()) : true
 }));
 
 app.use(express.json({ limit: '1mb' }));

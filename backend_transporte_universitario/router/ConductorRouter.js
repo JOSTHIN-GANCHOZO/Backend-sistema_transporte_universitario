@@ -27,7 +27,7 @@ router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarConduct
 // Eliminar (soft delete) un conductor
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarConductor);
 
-// Restaurar un conductor eliminado l��gicamente
+// Restaurar un conductor eliminado lógicamente
 router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarConductor);
 
 export default router;

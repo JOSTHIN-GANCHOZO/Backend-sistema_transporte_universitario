@@ -31,7 +31,7 @@ router.patch('/:id/utilizar', verifyToken, requireRol(['ADMINISTRADOR']), utiliz
 // Eliminar (soft delete) una reserva
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarReserva);
 
-// Restaurar una reserva eliminada l��gicamente
+// Restaurar una reserva eliminada lógicamente
 router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarReserva);
 
 export default router;

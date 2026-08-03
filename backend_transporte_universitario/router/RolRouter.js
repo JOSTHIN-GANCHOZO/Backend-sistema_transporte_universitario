@@ -27,7 +27,7 @@ router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarRol);
 // Eliminar (soft delete) un rol
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarRol);
 
-// Restaurar un rol eliminado l��gicamente
+// Restaurar un rol eliminado lógicamente
 router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarRol);
 
 export default router;

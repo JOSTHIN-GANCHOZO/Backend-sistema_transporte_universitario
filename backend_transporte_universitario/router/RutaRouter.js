@@ -27,7 +27,7 @@ router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarRuta);
 // Eliminar (soft delete) una ruta
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarRuta);
 
-// Restaurar una ruta eliminada l��gicamente
+// Restaurar una ruta eliminada lógicamente
 router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarRuta);
 
 export default router;

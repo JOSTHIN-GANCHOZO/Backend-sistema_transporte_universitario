@@ -98,6 +98,8 @@ export const actualizarParada = async (req, res) => {
       req.body.nombre = req.body.nombre.trim();
     }
 
+    delete req.body.id_parada;
+
     await parada.update(req.body);
     return res.status(200).json(parada);
   } catch (error) {
