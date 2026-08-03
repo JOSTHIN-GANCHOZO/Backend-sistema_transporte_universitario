@@ -9,6 +9,12 @@ export const obtenerCredencialPorUsuario = async (req, res) => {
       return res.status(400).json({ mensaje: 'El ID de usuario proporcionado no es válido.' });
     }
 
+    // Regla de negocio: solo el propio usuario o un administrador puede ver su credencial
+    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
+    if (!esAdministrador && Number(req.user.id_usuario) !== Number(id_usuario)) {
+      return res.status(403).json({ mensaje: 'No tienes permiso para ver la credencial de otro usuario.' });
+    }
+
     const credencial = await Credencial.findOne({
       where: { id_usuario },
       attributes: ['id_credencial', 'id_usuario', 'estado', 'ultimo_acceso']
