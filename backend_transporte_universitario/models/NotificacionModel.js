@@ -23,11 +23,6 @@ export const NotificacionModel = sequelize.define('Notificacion', {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  fecha_creacion: {
-    type: DataTypes.DATE,
-    allowNull: false,
-    defaultValue: DataTypes.NOW
-  },
   leido: {
     type: DataTypes.BOOLEAN,
     allowNull: false,
