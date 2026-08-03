@@ -27,7 +27,7 @@ router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarParada)
 // Eliminar (soft delete) una parada
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarParada);
 
-// Restaurar una parada eliminada l��gicamente
+// Restaurar una parada eliminada lógicamente
 router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarParada);
 
 export default router;

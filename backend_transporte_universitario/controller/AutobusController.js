@@ -63,6 +63,8 @@ export const actualizarAutobus = async (req, res) => {
       return res.status(400).json({ mensaje: 'La capacidad máxima debe ser mayor a 0.' });
     }
 
+    delete req.body.id_autobus;
+
     await autobus.update(req.body);
     return res.status(200).json(autobus);
   } catch (error) {

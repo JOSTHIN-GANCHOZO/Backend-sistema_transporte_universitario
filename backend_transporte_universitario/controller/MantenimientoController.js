@@ -31,6 +31,12 @@ export const crearMantenimiento = async (req, res) => {
   try {
     const { fecha_inicio, fecha_fin, tipo_mantenimiento, descripcion, costo, estado, id_autobus } = req.body;
 
+    const estadosValidos = ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CANCELADO'];
+    if (estado && !estadosValidos.includes(estado)) {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: `Estado inválido. Valores permitidos: ${estadosValidos.join(', ')}` });
+    }
+
     if (fecha_fin && new Date(fecha_fin) < new Date(fecha_inicio)) {
       await transaction.rollback();
       return res.status(400).json({ 
@@ -44,18 +50,22 @@ export const crearMantenimiento = async (req, res) => {
       return res.status(404).json({ mensaje: 'El autobús especificado no existe.' });
     }
 
+    const estadoFinal = estado || 'EN_PROCESO';
+
     const nuevoMantenimiento = await Mantenimiento.create({
       fecha_inicio,
       fecha_fin,
       tipo_mantenimiento,
       descripcion,
       costo,
-      estado: estado || 'EN_PROCESO',
+      estado: estadoFinal,
       id_autobus
     }, { transaction });
 
-    // Actualización automática del estado del autobús a EN_MANTENIMIENTO
-    await autobus.update({ estado: 'EN_MANTENIMIENTO' }, { transaction });
+    // Actualización automática del estado del autobús solo si el mantenimiento está activo
+    if (estadoFinal === 'PENDIENTE' || estadoFinal === 'EN_PROCESO') {
+      await autobus.update({ estado: 'EN_MANTENIMIENTO' }, { transaction });
+    }
 
     await transaction.commit();
     return res.status(201).json(nuevoMantenimiento);
@@ -75,6 +85,12 @@ export const actualizarMantenimiento = async (req, res) => {
       return res.status(404).json({ mensaje: 'Mantenimiento no encontrado' });
     }
 
+    const estadosValidos = ['PENDIENTE', 'EN_PROCESO', 'COMPLETADO', 'CANCELADO'];
+    if (req.body.estado && !estadosValidos.includes(req.body.estado)) {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: `Estado inválido. Valores permitidos: ${estadosValidos.join(', ')}` });
+    }
+
     const fechaInicioEfectiva = req.body.fecha_inicio || mantenimiento.fecha_inicio;
     const fechaFinEfectiva = req.body.fecha_fin !== undefined ? req.body.fecha_fin : mantenimiento.fecha_fin;
 
@@ -85,12 +101,36 @@ export const actualizarMantenimiento = async (req, res) => {
       });
     }
 
+    delete req.body.id_mantenimiento;
+    delete req.body.id_autobus;
+
     await mantenimiento.update(req.body, { transaction });
 
-    if (req.body.estado === 'COMPLETADO') {
+    const estadoNuevo = req.body.estado || mantenimiento.estado;
+
+    // Sincronizar el estado del autobús con el estado del mantenimiento
+    if (estadoNuevo === 'COMPLETADO' || estadoNuevo === 'CANCELADO') {
+      const otroMantenimientoActivo = await Mantenimiento.findOne({
+        where: {
+          id_autobus: mantenimiento.id_autobus,
+          id_mantenimiento: { [sequelize.Sequelize.Op.ne]: mantenimiento.id_mantenimiento },
+          estado: ['PENDIENTE', 'EN_PROCESO']
+        },
+        transaction
+      });
+
+      if (!otroMantenimientoActivo) {
+        const autobus = await Autobus.findByPk(mantenimiento.id_autobus, { transaction });
+        if (autobus) {
+          await autobus.update({ estado: 'DISPONIBLE' }, { transaction });
+        }
+      }
+    }
+
+    if (estadoNuevo === 'PENDIENTE' || estadoNuevo === 'EN_PROCESO') {
       const autobus = await Autobus.findByPk(mantenimiento.id_autobus, { transaction });
       if (autobus) {
-        await autobus.update({ estado: 'DISPONIBLE' }, { transaction });
+        await autobus.update({ estado: 'EN_MANTENIMIENTO' }, { transaction });
       }
     }
 
@@ -126,6 +166,15 @@ export const restaurarMantenimiento = async (req, res) => {
       return res.status(404).json({ mensaje: 'Mantenimiento no encontrado' });
     }
     await mantenimiento.restore();
+
+    // Si el mantenimiento restaurado está activo, el autobús vuelve a estar en mantenimiento
+    if (mantenimiento.estado === 'PENDIENTE' || mantenimiento.estado === 'EN_PROCESO') {
+      const autobus = await Autobus.findByPk(mantenimiento.id_autobus);
+      if (autobus) {
+        await autobus.update({ estado: 'EN_MANTENIMIENTO' });
+      }
+    }
+
     return res.status(200).json({ mensaje: 'Mantenimiento restaurado correctamente', mantenimiento });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al restaurar mantenimiento', error: error.message });

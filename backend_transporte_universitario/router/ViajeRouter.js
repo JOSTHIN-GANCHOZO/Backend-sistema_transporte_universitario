@@ -24,7 +24,7 @@ router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearViaje);
 // Actualizar el estado de un viaje
 router.patch('/:id/estado', verifyToken, requireRol(['ADMINISTRADOR']), actualizarEstadoViaje);
 
-// Borrado l��gico de un viaje
+// Borrado lógico de un viaje
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarViaje);
 
 // Restaurar un viaje deshabilitado

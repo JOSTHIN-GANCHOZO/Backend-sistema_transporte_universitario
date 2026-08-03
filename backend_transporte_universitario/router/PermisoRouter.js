@@ -27,7 +27,7 @@ router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarPermiso
 // Eliminar (soft delete) un permiso
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarPermiso);
 
-// Restaurar un permiso eliminado l��gicamente
+// Restaurar un permiso eliminado lógicamente
 router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarPermiso);
 
 export default router;

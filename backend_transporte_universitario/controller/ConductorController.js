@@ -55,6 +55,8 @@ export const actualizarConductor = async (req, res) => {
       return res.status(404).json({ mensaje: 'Conductor no encontrado' });
     }
 
+    delete req.body.id_conductor;
+
     await conductor.update(req.body);
     return res.status(200).json(conductor);
   } catch (error) {

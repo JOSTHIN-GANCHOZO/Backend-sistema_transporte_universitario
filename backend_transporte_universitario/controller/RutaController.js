@@ -121,6 +121,8 @@ export const actualizarRuta = async (req, res) => {
       }
     }
 
+    delete req.body.id_ruta;
+
     await ruta.update(req.body);
     return res.status(200).json(ruta);
   } catch (error) {

@@ -6,7 +6,7 @@ export const verifyToken = async (req, res, next) => {
   const tokenHeader = req.header('Authorization');
 
   if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ message: 'Unauthorized' });
+    return res.status(401).json({ mensaje: 'No autorizado.' });
   }
 
   const token = tokenHeader.split(' ')[1];
@@ -18,16 +18,16 @@ export const verifyToken = async (req, res, next) => {
     // Revalidar en BD que el usuario siga activo y su credencial no esté bloqueada/inactiva
     const usuario = await Usuario.findByPk(user.id_usuario);
     if (!usuario) {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ mensaje: 'Token inválido.' });
     }
 
     const credencial = await Credencial.findOne({ where: { id_usuario: user.id_usuario } });
     if (!credencial || credencial.estado !== 'ACTIVA') {
-      return res.status(401).json({ message: 'Invalid token' });
+      return res.status(401).json({ mensaje: 'Token inválido.' });
     }
 
     next();
   } catch (err) {
-    return res.status(401).json({ message: 'Invalid token' });
+    return res.status(401).json({ mensaje: 'Token inválido.' });
   }
 };

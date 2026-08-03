@@ -15,19 +15,19 @@ const router = Router();
 // Obtener todos los autobuses
 router.get('/', verifyToken, obtenerAutobuses);
 
-// Obtener un autobǧs por ID
+// Obtener un autobús por ID
 router.get('/:id', verifyToken, obtenerAutobusPorId);
 
-// Crear un nuevo autobǧs
+// Crear un nuevo autobús
 router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearAutobus);
 
-// Actualizar un autobǧs existente
+// Actualizar un autobús existente
 router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarAutobus);
 
-// Eliminar (soft delete) un autobǧs
+// Eliminar (soft delete) un autobús
 router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarAutobus);
 
-// Restaurar un autobǧs eliminado l��gicamente
+// Restaurar un autobús eliminado lógicamente
 router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarAutobus);
 
 export default router;
