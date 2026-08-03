@@ -87,7 +87,7 @@ export const actualizarMantenimiento = async (req, res) => {
 
     await mantenimiento.update(req.body, { transaction });
 
-    if (req.body.estado === 'FINALIZADO' || req.body.estado === 'COMPLETADO') {
+    if (req.body.estado === 'COMPLETADO') {
       const autobus = await Autobus.findByPk(mantenimiento.id_autobus, { transaction });
       if (autobus) {
         await autobus.update({ estado: 'DISPONIBLE' }, { transaction });
