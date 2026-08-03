@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
+import { Usuario, Credencial } from "../models/index.js";
 import { TOKEN_KEY } from "../config/config.js";
 
-export const verifyToken = (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
   const tokenHeader = req.header('Authorization');
 
   if (!tokenHeader || !tokenHeader.startsWith('Bearer ')) {
@@ -10,11 +11,23 @@ export const verifyToken = (req, res, next) => {
 
   const token = tokenHeader.split(' ')[1];
 
-  jwt.verify(token, TOKEN_KEY, (err, user) => {
-    if (err) {
+  try {
+    const user = jwt.verify(token, TOKEN_KEY);
+    req.user = user;
+
+    // Revalidar en BD que el usuario siga activo y su credencial no esté bloqueada/inactiva
+    const usuario = await Usuario.findByPk(user.id_usuario);
+    if (!usuario) {
       return res.status(401).json({ message: 'Invalid token' });
     }
-    req.user = user;
+
+    const credencial = await Credencial.findOne({ where: { id_usuario: user.id_usuario } });
+    if (!credencial || credencial.estado !== 'ACTIVA') {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
     next();
-  });
+  } catch (err) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
 };
