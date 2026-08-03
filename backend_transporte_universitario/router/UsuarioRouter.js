@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { verifyToken } from '../middleware/auth.js';
+import { requireRol } from '../middleware/roles.js';
 import {
   obtenerUsuarios,
   obtenerUsuarioPorId,
@@ -8,37 +10,18 @@ import {
   activarAccesoUsuario,
   eliminarUsuario,
   restaurarUsuario
-} from '../controllers/usuario.controller.js'; // Ajusta la ruta según tu estructura de carpetas
+} from '../controller/UsuarioController.js';
 
 const router = Router();
-
 // --- RUTAS PRINCIPALES (CRUD) ---
-
-// GET /api/usuarios - Obtener todos los usuarios
-router.get('/', obtenerUsuarios);
-
-// GET /api/usuarios/:id - Obtener un usuario por ID
-router.get('/:id', obtenerUsuarioPorId);
-
-// POST /api/usuarios - Crear un nuevo usuario
-router.post('/', crearUsuario);
-
-// PUT /api/usuarios/:id - Actualizar datos de un usuario
-router.put('/:id', actualizarUsuario);
-
-// DELETE /api/usuarios/:id - Borrado lógico (Soft delete) del usuario
-router.delete('/:id', eliminarUsuario);
-
-
+router.get('/', verifyToken, requireRol(['ADMINISTRADOR']), obtenerUsuarios);
+router.get('/:id', verifyToken, requireRol(['ADMINISTRADOR']), obtenerUsuarioPorId);
+router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearUsuario);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarUsuario);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarUsuario);
 // --- RUTAS DE ESTADO Y CREDENCIALES ---
-
-// PATCH /api/usuarios/:id/desactivar-acceso - Desactivar la credencial del usuario
-router.patch('/:id/desactivar-acceso', desactivarAccesoUsuario);
-
-// PATCH /api/usuarios/:id/activar-acceso - Reactivar la credencial del usuario
-router.patch('/:id/activar-acceso', activarAccesoUsuario);
-
-// PATCH /api/usuarios/:id/restaurar - Restaurar usuario eliminado lógicamente
-router.patch('/:id/restaurar', restaurarUsuario);
+router.patch('/:id/desactivar-acceso', verifyToken, requireRol(['ADMINISTRADOR']), desactivarAccesoUsuario);
+router.patch('/:id/activar-acceso', verifyToken, requireRol(['ADMINISTRADOR']), activarAccesoUsuario);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarUsuario);
 
 export default router;

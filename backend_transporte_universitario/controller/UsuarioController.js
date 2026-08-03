@@ -151,6 +151,7 @@ export const actualizarUsuario = async (req, res) => {
     }
 
     // Formatting payloads
+    delete req.body.id_usuario;
     if (req.body.identificacion) req.body.identificacion = req.body.identificacion.trim();
     if (req.body.nombres) req.body.nombres = req.body.nombres.trim();
     if (req.body.apellidos) req.body.apellidos = req.body.apellidos.trim();
@@ -279,6 +280,13 @@ export const restaurarUsuario = async (req, res) => {
     }
 
     await usuario.restore();
+
+    // Reactivar la credencial asociada junto con el usuario
+    const credencial = await Credencial.findOne({ where: { id_usuario: id } });
+    if (credencial) {
+      await credencial.update({ estado: 'ACTIVA' });
+    }
+
     return res.status(200).json({ mensaje: 'Usuario restaurado correctamente', usuario });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al restaurar usuario', error: error.message });

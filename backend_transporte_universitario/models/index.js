@@ -32,7 +32,10 @@ Notificacion.belongsTo(Usuario, { foreignKey: 'id_usuario' });
 Autobus.hasMany(Mantenimiento, { foreignKey: 'id_autobus' });
 Mantenimiento.belongsTo(Autobus, { foreignKey: 'id_autobus' });
 
-// Relación Autobus - Conductor
+// Relación Autobus - Conductor (tabla intermedia)
+AutobusConductor.belongsTo(Autobus, { foreignKey: 'id_autobus' });
+AutobusConductor.belongsTo(Conductor, { foreignKey: 'id_conductor' });
+
 Autobus.belongsToMany(Conductor, { 
   through: AutobusConductor, 
   foreignKey: 'id_autobus',
@@ -45,6 +48,9 @@ Conductor.belongsToMany(Autobus, {
 });
 
 // Relación Ruta - Parada
+RutaParada.belongsTo(Parada, { foreignKey: 'id_parada' });
+RutaParada.belongsTo(Ruta, { foreignKey: 'id_ruta', as: 'Ruta' });
+
 Ruta.belongsToMany(Parada, { 
   through: RutaParada, 
   foreignKey: 'id_ruta',
@@ -58,7 +64,7 @@ Parada.belongsToMany(Ruta, {
 
 // Relaciones con Viaje
 Ruta.hasMany(Viaje, { foreignKey: 'id_ruta' });
-Viaje.belongsTo(Ruta, { foreignKey: 'id_ruta' });
+Viaje.belongsTo(Ruta, { foreignKey: 'id_ruta', as: 'Ruta' });
 
 Autobus.hasMany(Viaje, { foreignKey: 'id_autobus' });
 Viaje.belongsTo(Autobus, { foreignKey: 'id_autobus' });

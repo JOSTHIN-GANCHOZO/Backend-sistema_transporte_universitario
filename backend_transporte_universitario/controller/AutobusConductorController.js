@@ -36,7 +36,7 @@ export const crearAsignacion = async (req, res) => {
 
     if (asignacionExistente) {
       // Si existía pero fue borrada lógicamente, la restauramos y actualizamos el horario
-      if (asignacionExistente.deletedAt !== null) {
+      if (asignacionExistente.fecha_eliminacion !== null) {
         await asignacionExistente.restore();
         asignacionExistente.horario = horario;
         await asignacionExistente.save();

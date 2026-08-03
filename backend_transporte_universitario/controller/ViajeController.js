@@ -1,4 +1,4 @@
-import { Viaje, Autobus, Conductor, Ruta, Reserva, sequelize } from '../models/index.js';
+import { Viaje, Autobus, Conductor, Ruta, Reserva, Mantenimiento, sequelize } from '../models/index.js';
 
 export const obtenerViajes = async (req, res) => {
   try {
@@ -198,6 +198,43 @@ export const actualizarEstadoViaje = async (req, res) => {
     }
 
     await viaje.update({ estado }, { transaction });
+
+    // Sincronizar el estado del autobús con el estado del viaje
+    if (estado === 'EN_RECORRIDO') {
+      const autobus = await Autobus.findByPk(viaje.id_autobus, { transaction });
+      if (autobus && autobus.estado === 'DISPONIBLE') {
+        await autobus.update({ estado: 'EN_SERVICIO' }, { transaction });
+      }
+    }
+
+    if (estado === 'FINALIZADO' || estado === 'CANCELADO') {
+      const otroViajeActivo = await Viaje.findOne({
+        where: {
+          id_autobus: viaje.id_autobus,
+          id_viaje: { [sequelize.Sequelize.Op.ne]: viaje.id_viaje },
+          estado: ['PROGRAMADO', 'EN_RECORRIDO']
+        },
+        transaction
+      });
+
+      if (!otroViajeActivo) {
+        const mantenimientoActivo = await Mantenimiento.findOne({
+          where: {
+            id_autobus: viaje.id_autobus,
+            estado: ['PENDIENTE', 'EN_PROCESO']
+          },
+          transaction
+        });
+
+        if (!mantenimientoActivo) {
+          const autobus = await Autobus.findByPk(viaje.id_autobus, { transaction });
+          if (autobus) {
+            await autobus.update({ estado: 'DISPONIBLE' }, { transaction });
+          }
+        }
+      }
+    }
+
     await transaction.commit();
 
     return res.status(200).json({ mensaje: `Estado del viaje actualizado a "${estado}" correctamente`, viaje });
@@ -251,6 +288,15 @@ export const restaurarViaje = async (req, res) => {
     }
 
     await viaje.restore();
+
+    // Si el viaje restaurado estaba en recorrido, el autobús vuelve a estar en servicio
+    if (viaje.estado === 'EN_RECORRIDO') {
+      const autobus = await Autobus.findByPk(viaje.id_autobus);
+      if (autobus && autobus.estado === 'DISPONIBLE') {
+        await autobus.update({ estado: 'EN_SERVICIO' });
+      }
+    }
+
     return res.status(200).json({ mensaje: 'Viaje restaurado correctamente', viaje });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al restaurar viaje', error: error.message });

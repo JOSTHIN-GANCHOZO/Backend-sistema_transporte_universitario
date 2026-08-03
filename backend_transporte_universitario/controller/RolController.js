@@ -91,6 +91,8 @@ export const actualizarRol = async (req, res) => {
       req.body.descripcion = req.body.descripcion.trim();
     }
 
+    delete req.body.id_rol;
+
     await rol.update(req.body);
     return res.status(200).json(rol);
   } catch (error) {

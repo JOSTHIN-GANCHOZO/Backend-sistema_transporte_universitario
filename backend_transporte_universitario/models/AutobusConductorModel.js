@@ -19,7 +19,8 @@ export const AutobusConductorModel = sequelize.define('Autobus_Conductor', {
 }, {
   tableName: 'Autobus_Conductor',
   timestamps: true, // Requerido para paranoid
-  paranoid: true    // Habilita Soft Delete (borrado lógico con columna 'deletedAt')
+  deletedAt: 'fecha_eliminacion', // Coherente con el resto de modelos
+  paranoid: true    // Habilita Soft Delete (borrado lógico con columna 'fecha_eliminacion')
 });
 
 export default AutobusConductorModel;
