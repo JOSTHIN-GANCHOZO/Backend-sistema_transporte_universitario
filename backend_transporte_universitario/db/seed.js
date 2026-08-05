@@ -10,12 +10,46 @@ async function seed() {
     await sequelize.sync();
     console.log('✅ Tablas sincronizadas.');
 
-    let rolAdmin = await Rol.findOne({ where: { nombre: 'ADMINISTRADOR' } });
+    let rolAdmin = await Rol.findOne({ where: { nombre: 'ADMINISTRATIVO' } });
     if (!rolAdmin) {
-      rolAdmin = await Rol.create({ nombre: 'ADMINISTRADOR', descripcion: 'Administrador del sistema' });
-      console.log('✅ Rol ADMINISTRADOR creado.');
+      const rolAntiguo = await Rol.findOne({ where: { nombre: 'ADMINISTRADOR' } });
+      if (rolAntiguo) {
+        await rolAntiguo.update({ nombre: 'ADMINISTRATIVO' });
+        rolAdmin = rolAntiguo;
+        console.log('✅ Rol ADMINISTRADOR renombrado a ADMINISTRATIVO.');
+      } else {
+        rolAdmin = await Rol.create({ nombre: 'ADMINISTRATIVO', descripcion: 'Administrativo del sistema' });
+        console.log('✅ Rol ADMINISTRATIVO creado.');
+      }
     } else {
-      console.log('ℹ️  El rol ADMINISTRADOR ya existe.');
+      console.log('ℹ️  El rol ADMINISTRATIVO ya existe.');
+    }
+
+    let rolPasajero = await Rol.findOne({ where: { nombre: 'PASAJERO' } });
+    if (!rolPasajero) {
+      rolPasajero = await Rol.create({ nombre: 'PASAJERO', descripcion: 'Pasajero del transporte universitario' });
+      console.log('✅ Rol PASAJERO creado.');
+    } else {
+      console.log('ℹ️  El rol PASAJERO ya existe.');
+    }
+
+    // Normalizar roles: solo deben quedar PASAJERO y ADMINISTRATIVO
+    const rolesValidos = ['PASAJERO', 'ADMINISTRATIVO'];
+    const rolesSobrantes = await Rol.findAll({ where: { nombre: { [sequelize.Sequelize.Op.notIn]: rolesValidos } } });
+    if (rolesSobrantes.length > 0) {
+      const usuariosSobrantes = await Usuario.findAll({
+        where: { id_rol: rolesSobrantes.map((r) => r.id_rol) }
+      });
+      for (const usuario of usuariosSobrantes) {
+        await usuario.update({ id_rol: rolPasajero.id_rol });
+      }
+      if (usuariosSobrantes.length > 0) {
+        console.log(`↔️ ${usuariosSobrantes.length} usuario(s) reasignado(s) al rol PASAJERO.`);
+      }
+      for (const rol of rolesSobrantes) {
+        await rol.destroy();
+        console.log(`🗑️  Rol ${rol.nombre} eliminado (solo se permiten PASAJERO y ADMINISTRATIVO).`);
+      }
     }
 
     if (!ADMIN_CORREO || !ADMIN_PASSWORD) {
