@@ -13,21 +13,21 @@ import {
 const router = Router();
 
 // Obtener todos los permisos
-router.get('/', verifyToken, obtenerPermisos);
+router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerPermisos);
 
 // Obtener un permiso por ID
-router.get('/:id', verifyToken, obtenerPermisoPorId);
+router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerPermisoPorId);
 
 // Crear un nuevo permiso
-router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearPermiso);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearPermiso);
 
 // Actualizar un permiso existente
-router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarPermiso);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarPermiso);
 
 // Eliminar (soft delete) un permiso
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarPermiso);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarPermiso);
 
 // Restaurar un permiso eliminado lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarPermiso);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarPermiso);
 
 export default router;

@@ -13,21 +13,21 @@ import {
 const router = Router();
 
 // Obtener todos los conductores
-router.get('/', verifyToken, obtenerConductores);
+router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerConductores);
 
 // Obtener un conductor por ID
-router.get('/:id', verifyToken, obtenerConductorPorId);
+router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerConductorPorId);
 
 // Crear un nuevo conductor
-router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearConductor);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearConductor);
 
 // Actualizar un conductor existente
-router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarConductor);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarConductor);
 
 // Eliminar (soft delete) un conductor
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarConductor);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarConductor);
 
 // Restaurar un conductor eliminado lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarConductor);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarConductor);
 
 export default router;
