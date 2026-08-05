@@ -14,14 +14,14 @@ import {
 
 const router = Router();
 // --- RUTAS PRINCIPALES (CRUD) ---
-router.get('/', verifyToken, requireRol(['ADMINISTRADOR']), obtenerUsuarios);
-router.get('/:id', verifyToken, requireRol(['ADMINISTRADOR']), obtenerUsuarioPorId);
-router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearUsuario);
-router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarUsuario);
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarUsuario);
+router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerUsuarios);
+router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerUsuarioPorId);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearUsuario);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarUsuario);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarUsuario);
 // --- RUTAS DE ESTADO Y CREDENCIALES ---
-router.patch('/:id/desactivar-acceso', verifyToken, requireRol(['ADMINISTRADOR']), desactivarAccesoUsuario);
-router.patch('/:id/activar-acceso', verifyToken, requireRol(['ADMINISTRADOR']), activarAccesoUsuario);
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarUsuario);
+router.patch('/:id/desactivar-acceso', verifyToken, requireRol(['ADMINISTRATIVO']), desactivarAccesoUsuario);
+router.patch('/:id/activar-acceso', verifyToken, requireRol(['ADMINISTRATIVO']), activarAccesoUsuario);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarUsuario);
 
 export default router;

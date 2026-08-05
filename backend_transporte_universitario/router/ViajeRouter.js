@@ -19,15 +19,15 @@ router.get('/', verifyToken, obtenerViajes);
 router.get('/:id', verifyToken, obtenerViajePorId);
 
 // Crear un nuevo viaje
-router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearViaje);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearViaje);
 
 // Actualizar el estado de un viaje
-router.patch('/:id/estado', verifyToken, requireRol(['ADMINISTRADOR']), actualizarEstadoViaje);
+router.patch('/:id/estado', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarEstadoViaje);
 
 // Borrado lógico de un viaje
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarViaje);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarViaje);
 
 // Restaurar un viaje deshabilitado
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarViaje);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarViaje);
 
 export default router;
