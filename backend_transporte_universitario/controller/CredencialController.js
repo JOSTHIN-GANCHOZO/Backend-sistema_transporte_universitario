@@ -111,6 +111,12 @@ export const actualizarPassword = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     await credencial.update({ password: passwordHash });
+
+    // Cuando el propio usuario cambia su contraseña, ya no debe cambiar la contraseña
+    if (esElMismoUsuario) {
+      await credencial.update({ debe_cambiar_password: false });
+    }
+
     return res.status(200).json({ mensaje: 'Contraseña actualizada correctamente.' });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al actualizar contraseña', error: error.message });

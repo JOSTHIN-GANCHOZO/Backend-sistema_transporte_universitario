@@ -25,6 +25,11 @@ export const CredencialModel = sequelize.define('Credencial', {
     allowNull: false,
     defaultValue: 'ACTIVA'
   },
+  debe_cambiar_password: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: true
+  },
   ultimo_acceso: {
     type: DataTypes.DATE,
     allowNull: true
