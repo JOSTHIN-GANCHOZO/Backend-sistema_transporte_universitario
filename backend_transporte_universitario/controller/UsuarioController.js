@@ -1,6 +1,16 @@
 import bcrypt from 'bcrypt';
 import { Usuario, Rol, Credencial, sequelize } from '../models/index.js';
 
+const coherenciaTipoRol = (tipoUsuario, rolNombre) => {
+  if (rolNombre === 'ADMINISTRATIVO' && tipoUsuario !== 'ADMINISTRATIVO') {
+    return 'Un usuario con rol ADMINISTRATIVO debe tener el tipo de usuario ADMINISTRATIVO.';
+  }
+  if (rolNombre === 'PASAJERO' && tipoUsuario !== 'ESTUDIANTE' && tipoUsuario !== 'DOCENTE') {
+    return 'Un usuario con rol PASAJERO debe tener el tipo de usuario ESTUDIANTE o DOCENTE.';
+  }
+  return null;
+};
+
 export const obtenerUsuarios = async (req, res) => {
   try {
     const usuarios = await Usuario.findAll({
@@ -81,6 +91,13 @@ export const crearUsuario = async (req, res) => {
     if (!rolExiste) {
       await transaction.rollback();
       return res.status(400).json({ mensaje: 'El ID de rol especificado no existe.' });
+    }
+
+    // Regla de coherencia: el tipo de usuario debe ser compatible con el rol
+    const incoherencia = coherenciaTipoRol(tipo_usuario, rolExiste.nombre);
+    if (incoherencia) {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: incoherencia });
     }
 
     const identificacionLimpia = identificacion.trim();
@@ -170,6 +187,19 @@ export const actualizarUsuario = async (req, res) => {
       const rolExiste = await Rol.findByPk(req.body.id_rol);
       if (!rolExiste) {
         return res.status(400).json({ mensaje: 'El ID de rol especificado no existe.' });
+      }
+    }
+
+    // Regla de coherencia: el tipo de usuario resultante debe ser compatible con el rol resultante
+    const idRolFinal = req.body.id_rol ? Number(req.body.id_rol) : usuario.id_rol;
+    const rolFinal = await Rol.findByPk(idRolFinal);
+    if (rolFinal) {
+      const incoherencia = coherenciaTipoRol(
+        req.body.tipo_usuario ?? usuario.tipo_usuario,
+        rolFinal.nombre
+      );
+      if (incoherencia) {
+        return res.status(400).json({ mensaje: incoherencia });
       }
     }
 
