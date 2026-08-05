@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { Usuario, Rol, Credencial, sequelize } from '../models/index.js';
 
 export const obtenerUsuarios = async (req, res) => {
@@ -39,6 +40,7 @@ export const obtenerUsuarioPorId = async (req, res) => {
 };
 
 export const crearUsuario = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { identificacion, nombres, apellidos, correo, telefono, tipo_usuario, id_rol } = req.body;
     const errores = [];
@@ -70,12 +72,14 @@ export const crearUsuario = async (req, res) => {
     }
 
     if (errores.length > 0) {
+      await transaction.rollback();
       return res.status(400).json({ mensaje: 'Errores de validación', errores });
     }
 
     // Comprobar existencia del Rol
-    const rolExiste = await Rol.findByPk(id_rol);
+    const rolExiste = await Rol.findByPk(id_rol, { transaction });
     if (!rolExiste) {
+      await transaction.rollback();
       return res.status(400).json({ mensaje: 'El ID de rol especificado no existe.' });
     }
 
@@ -89,10 +93,12 @@ export const crearUsuario = async (req, res) => {
           { identificacion: identificacionLimpia },
           { correo: correoLimpio }
         ]
-      }
+      },
+      transaction
     });
 
     if (usuarioExistente) {
+      await transaction.rollback();
       return res.status(400).json({ mensaje: 'La identificación o el correo ya se encuentran registrados.' });
     }
 
@@ -104,10 +110,27 @@ export const crearUsuario = async (req, res) => {
       telefono: telefono ? telefono.trim() : null,
       tipo_usuario,
       id_rol: Number(id_rol)
-    });
+    }, { transaction });
 
-    return res.status(201).json(nuevoUsuario);
+    // Crear la credencial del usuario con la identificación como contraseña temporal
+    const passwordTemporal = identificacionLimpia;
+    const passwordHash = await bcrypt.hash(passwordTemporal, 10);
+
+    const nuevaCredencial = await Credencial.create({
+      id_usuario: nuevoUsuario.id_usuario,
+      password: passwordHash,
+      estado: 'ACTIVA'
+    }, { transaction });
+
+    await transaction.commit();
+
+    return res.status(201).json({
+      ...nuevoUsuario.toJSON(),
+      Credencial: { id_credencial: nuevaCredencial.id_credencial, estado: nuevaCredencial.estado },
+      password_temporal: passwordTemporal
+    });
   } catch (error) {
+    await transaction.rollback();
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ mensaje: 'La identificación o el correo ya se encuentran registrados.' });
     }
