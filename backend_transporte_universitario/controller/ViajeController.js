@@ -4,7 +4,7 @@ export const obtenerViajes = async (req, res) => {
   try {
     const viajes = await Viaje.findAll({
       include: [
-        { model: Ruta, attributes: ['id_ruta', 'codigo', 'nombre', 'origen', 'destino'] },
+        { model: Ruta, as: 'Ruta', attributes: ['id_ruta', 'codigo', 'nombre', 'origen', 'destino'] },
         { model: Autobus, attributes: ['id_autobus', 'placa', 'numero_interno', 'capacidad_maxima', 'estado'] },
         { model: Conductor, attributes: ['id_conductor', 'identificacion', 'nombres', 'apellidos', 'numero_licencia', 'fecha_vencimiento_licencia'] }
       ]
@@ -25,7 +25,7 @@ export const obtenerViajePorId = async (req, res) => {
 
     const viaje = await Viaje.findByPk(id, {
       include: [
-        { model: Ruta },
+        { model: Ruta, as: 'Ruta' },
         { model: Autobus },
         { model: Conductor },
         { model: Reserva }
