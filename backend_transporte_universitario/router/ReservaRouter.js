@@ -26,12 +26,12 @@ router.post('/', verifyToken, crearReserva);
 router.patch('/:id/cancelar', verifyToken, cancelarReserva);
 
 // Marcar reserva como utilizada
-router.patch('/:id/utilizar', verifyToken, requireRol(['ADMINISTRADOR']), utilizarReserva);
+router.patch('/:id/utilizar', verifyToken, requireRol(['ADMINISTRATIVO']), utilizarReserva);
 
 // Eliminar (soft delete) una reserva
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarReserva);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarReserva);
 
 // Restaurar una reserva eliminada lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarReserva);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarReserva);
 
 export default router;

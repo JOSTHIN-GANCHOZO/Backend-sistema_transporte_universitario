@@ -9,8 +9,8 @@ export const obtenerNotificacionesPorUsuario = async (req, res) => {
     }
 
     // Regla de negocio: un usuario no administrador solo ve sus propias notificaciones
-    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
-    if (!esAdministrador && Number(req.user.id_usuario) !== Number(id_usuario)) {
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(req.user.id_usuario) !== Number(id_usuario)) {
       return res.status(403).json({ mensaje: 'No tienes permiso para ver las notificaciones de otro usuario.' });
     }
 
@@ -80,8 +80,8 @@ export const marcarNotificacionLeida = async (req, res) => {
     }
 
     // Regla de negocio: un usuario no administrador solo marca sus propias notificaciones
-    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
-    if (!esAdministrador && Number(notificacion.id_usuario) !== Number(req.user.id_usuario)) {
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(notificacion.id_usuario) !== Number(req.user.id_usuario)) {
       return res.status(404).json({ mensaje: 'Notificación no encontrada.' });
     }
 

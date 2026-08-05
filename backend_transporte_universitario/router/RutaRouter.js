@@ -19,15 +19,15 @@ router.get('/', verifyToken, obtenerRutas);
 router.get('/:id', verifyToken, obtenerRutaPorId);
 
 // Crear una nueva ruta
-router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearRuta);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearRuta);
 
 // Actualizar una ruta existente
-router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarRuta);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarRuta);
 
 // Eliminar (soft delete) una ruta
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarRuta);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarRuta);
 
 // Restaurar una ruta eliminada lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarRuta);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarRuta);
 
 export default router;

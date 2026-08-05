@@ -10,8 +10,8 @@ export const obtenerCredencialPorUsuario = async (req, res) => {
     }
 
     // Regla de negocio: solo el propio usuario o un administrador puede ver su credencial
-    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
-    if (!esAdministrador && Number(req.user.id_usuario) !== Number(id_usuario)) {
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(req.user.id_usuario) !== Number(id_usuario)) {
       return res.status(403).json({ mensaje: 'No tienes permiso para ver la credencial de otro usuario.' });
     }
 
@@ -88,10 +88,10 @@ export const actualizarPassword = async (req, res) => {
     }
 
     // Regla de negocio: solo el propio usuario o un administrador puede cambiar la contraseña
-    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
     const esElMismoUsuario = req.user && Number(req.user.id_usuario) === Number(id_usuario);
 
-    if (!esElMismoUsuario && !esAdministrador) {
+    if (!esElMismoUsuario && !esAdministrativo) {
       return res.status(403).json({ mensaje: 'No tienes permiso para cambiar la contraseña de otro usuario.' });
     }
 

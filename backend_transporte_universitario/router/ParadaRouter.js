@@ -19,15 +19,15 @@ router.get('/', verifyToken, obtenerParadas);
 router.get('/:id', verifyToken, obtenerParadaPorId);
 
 // Crear una nueva parada
-router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearParada);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearParada);
 
 // Actualizar una parada existente
-router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarParada);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarParada);
 
 // Eliminar (soft delete) una parada
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarParada);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarParada);
 
 // Restaurar una parada eliminada lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarParada);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarParada);
 
 export default router;

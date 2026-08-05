@@ -13,21 +13,21 @@ import {
 const router = Router();
 
 // Obtener todos los roles
-router.get('/', verifyToken, obtenerRoles);
+router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerRoles);
 
 // Obtener un rol por ID
-router.get('/:id', verifyToken, obtenerRolPorId);
+router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerRolPorId);
 
 // Crear un nuevo rol
-router.post('/', verifyToken, requireRol(['ADMINISTRADOR']), crearRol);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearRol);
 
 // Actualizar un rol existente
-router.put('/:id', verifyToken, requireRol(['ADMINISTRADOR']), actualizarRol);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarRol);
 
 // Eliminar (soft delete) un rol
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRADOR']), eliminarRol);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarRol);
 
 // Restaurar un rol eliminado lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRADOR']), restaurarRol);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarRol);
 
 export default router;
