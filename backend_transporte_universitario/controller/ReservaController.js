@@ -3,8 +3,8 @@ import { Reserva, Viaje, Usuario, Autobus, sequelize } from '../models/index.js'
 export const obtenerReservas = async (req, res) => {
   try {
     // Regla de negocio: un usuario no administrador solo ve sus propias reservas
-    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
-    const where = esAdministrador ? {} : { id_usuario: req.user.id_usuario };
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    const where = esAdministrativo ? {} : { id_usuario: req.user.id_usuario };
 
     const reservas = await Reserva.findAll({
       where,
@@ -36,8 +36,8 @@ export const obtenerReservaPorId = async (req, res) => {
     }
 
     // Regla de negocio: un usuario no administrador solo accede a sus propias reservas
-    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
-    if (!esAdministrador && Number(reserva.id_usuario) !== Number(req.user.id_usuario)) {
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(reserva.id_usuario) !== Number(req.user.id_usuario)) {
       return res.status(404).json({ mensaje: 'Reserva no encontrada.' });
     }
     return res.status(200).json(reserva);
@@ -48,8 +48,8 @@ export const obtenerReservaPorId = async (req, res) => {
 
 export const crearReserva = async (req, res) => {
   // Regla de negocio: un usuario no administrador solo puede reservar para sí mismo
-  const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
-  const id_usuario = esAdministrador ? req.body.id_usuario : req.user.id_usuario;
+  const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+  const id_usuario = esAdministrativo ? req.body.id_usuario : req.user.id_usuario;
   const { id_viaje, numero_asiento } = req.body;
   const errores = [];
 
@@ -186,8 +186,8 @@ export const cancelarReserva = async (req, res) => {
     }
 
     // Regla de negocio: un usuario no administrador solo cancela sus propias reservas
-    const esAdministrador = req.user && req.user.rol === 'ADMINISTRADOR';
-    if (!esAdministrador && Number(reserva.id_usuario) !== Number(req.user.id_usuario)) {
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(reserva.id_usuario) !== Number(req.user.id_usuario)) {
       await transaction.rollback();
       return res.status(404).json({ mensaje: 'Reserva no encontrada.' });
     }
