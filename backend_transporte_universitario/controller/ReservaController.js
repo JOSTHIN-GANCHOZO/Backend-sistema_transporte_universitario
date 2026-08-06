@@ -49,7 +49,7 @@ export const obtenerReservaPorId = async (req, res) => {
 export const crearReserva = async (req, res) => {
   // Regla de negocio: un usuario no administrador solo puede reservar para sí mismo
   const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
-  const id_usuario = esAdministrativo ? req.body.id_usuario : req.user.id_usuario;
+  const id_usuario = (esAdministrativo && req.body.id_usuario) ? req.body.id_usuario : req.user?.id_usuario;
   const { id_viaje, numero_asiento } = req.body;
   const errores = [];
 

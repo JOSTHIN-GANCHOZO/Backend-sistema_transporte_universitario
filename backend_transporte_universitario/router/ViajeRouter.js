@@ -7,7 +7,9 @@ import {
   crearViaje,
   actualizarEstadoViaje,
   eliminarViaje,
-  restaurarViaje
+  restaurarViaje,
+  actualizarViaje,
+  obtenerReservasPorViaje
 } from '../controller/ViajeController.js';
 
 const router = Router();
@@ -20,6 +22,12 @@ router.get('/:id', verifyToken, obtenerViajePorId);
 
 // Crear un nuevo viaje
 router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearViaje);
+
+// Actualizar un viaje
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarViaje);
+
+// Obtener reservas de un viaje
+router.get('/:id/reservas', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerReservasPorViaje);
 
 // Actualizar el estado de un viaje
 router.patch('/:id/estado', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarEstadoViaje);
