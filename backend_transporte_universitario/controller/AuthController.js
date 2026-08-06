@@ -38,7 +38,7 @@ export const login = async (req, res) => {
       return res.status(401).json({ mensaje: 'Credenciales incorrectas.' });
     }
 
-    const requiereCambio = credencial.ultimo_acceso === null;
+    const requiereCambio = credencial.debe_cambiar_password;
 
     const token = jwt.sign(
       {

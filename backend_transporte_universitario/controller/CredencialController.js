@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Credencial, Usuario } from '../models/index.js';
+import { motivoBloqueoGestion, mensajeMotivoBloqueo } from './helpers/proteccionAdministradores.js';
 
 export const obtenerCredencialPorUsuario = async (req, res) => {
   try {
@@ -111,6 +112,12 @@ export const actualizarPassword = async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
 
     await credencial.update({ password: passwordHash });
+
+    // Cuando el propio usuario cambia su contraseña, ya no debe cambiar la contraseña
+    if (esElMismoUsuario) {
+      await credencial.update({ debe_cambiar_password: false });
+    }
+
     return res.status(200).json({ mensaje: 'Contraseña actualizada correctamente.' });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al actualizar contraseña', error: error.message });
@@ -136,6 +143,18 @@ export const cambiarEstadoCredencial = async (req, res) => {
     const credencial = await Credencial.findOne({ where: { id_usuario } });
     if (!credencial) {
       return res.status(404).json({ mensaje: 'Credencial no encontrada.' });
+    }
+
+    // Protección: no se puede bloquear/desactivar al administrador principal, al propio o al último admin activo
+    if (estado === 'BLOQUEADA' || estado === 'INACTIVA') {
+      const usuario = await Usuario.findByPk(id_usuario);
+      if (usuario) {
+        const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+        if (motivo) {
+          const accion = estado === 'INACTIVA' ? 'desactivar' : 'bloquear';
+          return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, accion) });
+        }
+      }
     }
 
     await credencial.update({ estado });
