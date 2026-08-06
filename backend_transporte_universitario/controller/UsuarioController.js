@@ -1,4 +1,16 @@
+import bcrypt from 'bcrypt';
 import { Usuario, Rol, Credencial, sequelize } from '../models/index.js';
+import { motivoBloqueoGestion, mensajeMotivoBloqueo } from './helpers/proteccionAdministradores.js';
+
+const coherenciaTipoRol = (tipoUsuario, rolNombre) => {
+  if (rolNombre === 'ADMINISTRATIVO' && tipoUsuario !== 'ADMINISTRATIVO') {
+    return 'Un usuario con rol ADMINISTRATIVO debe tener el tipo de usuario ADMINISTRATIVO.';
+  }
+  if (rolNombre === 'PASAJERO' && tipoUsuario !== 'ESTUDIANTE' && tipoUsuario !== 'DOCENTE') {
+    return 'Un usuario con rol PASAJERO debe tener el tipo de usuario ESTUDIANTE o DOCENTE.';
+  }
+  return null;
+};
 
 export const obtenerUsuarios = async (req, res) => {
   try {
@@ -39,6 +51,7 @@ export const obtenerUsuarioPorId = async (req, res) => {
 };
 
 export const crearUsuario = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { identificacion, nombres, apellidos, correo, telefono, tipo_usuario, id_rol } = req.body;
     const errores = [];
@@ -70,13 +83,22 @@ export const crearUsuario = async (req, res) => {
     }
 
     if (errores.length > 0) {
+      await transaction.rollback();
       return res.status(400).json({ mensaje: 'Errores de validación', errores });
     }
 
     // Comprobar existencia del Rol
-    const rolExiste = await Rol.findByPk(id_rol);
+    const rolExiste = await Rol.findByPk(id_rol, { transaction });
     if (!rolExiste) {
+      await transaction.rollback();
       return res.status(400).json({ mensaje: 'El ID de rol especificado no existe.' });
+    }
+
+    // Regla de coherencia: el tipo de usuario debe ser compatible con el rol
+    const incoherencia = coherenciaTipoRol(tipo_usuario, rolExiste.nombre);
+    if (incoherencia) {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: incoherencia });
     }
 
     const identificacionLimpia = identificacion.trim();
@@ -89,10 +111,12 @@ export const crearUsuario = async (req, res) => {
           { identificacion: identificacionLimpia },
           { correo: correoLimpio }
         ]
-      }
+      },
+      transaction
     });
 
     if (usuarioExistente) {
+      await transaction.rollback();
       return res.status(400).json({ mensaje: 'La identificación o el correo ya se encuentran registrados.' });
     }
 
@@ -104,10 +128,27 @@ export const crearUsuario = async (req, res) => {
       telefono: telefono ? telefono.trim() : null,
       tipo_usuario,
       id_rol: Number(id_rol)
-    });
+    }, { transaction });
 
-    return res.status(201).json(nuevoUsuario);
+    // Crear la credencial del usuario con la identificación como contraseña temporal
+    const passwordTemporal = identificacionLimpia;
+    const passwordHash = await bcrypt.hash(passwordTemporal, 10);
+
+    const nuevaCredencial = await Credencial.create({
+      id_usuario: nuevoUsuario.id_usuario,
+      password: passwordHash,
+      estado: 'ACTIVA'
+    }, { transaction });
+
+    await transaction.commit();
+
+    return res.status(201).json({
+      ...nuevoUsuario.toJSON(),
+      Credencial: { id_credencial: nuevaCredencial.id_credencial, estado: nuevaCredencial.estado },
+      password_temporal: passwordTemporal
+    });
   } catch (error) {
+    await transaction.rollback();
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ mensaje: 'La identificación o el correo ya se encuentran registrados.' });
     }
@@ -150,7 +191,30 @@ export const actualizarUsuario = async (req, res) => {
       }
     }
 
+    // Regla de coherencia: el tipo de usuario resultante debe ser compatible con el rol resultante
+    const idRolFinal = req.body.id_rol ? Number(req.body.id_rol) : usuario.id_rol;
+    const rolFinal = await Rol.findByPk(idRolFinal);
+    if (rolFinal) {
+      const incoherencia = coherenciaTipoRol(
+        req.body.tipo_usuario ?? usuario.tipo_usuario,
+        rolFinal.nombre
+      );
+      if (incoherencia) {
+        return res.status(400).json({ mensaje: incoherencia });
+      }
+    }
+
+    // Protección: no se puede degradar a un administrador protegido (principal, el propio o el último activo)
+    const rolActual = await usuario.getRol();
+    if (rolActual?.nombre === 'ADMINISTRATIVO' && rolFinal?.nombre !== 'ADMINISTRATIVO') {
+      const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+      if (motivo) {
+        return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'degradar') });
+      }
+    }
+
     // Formatting payloads
+    delete req.body.id_usuario;
     if (req.body.identificacion) req.body.identificacion = req.body.identificacion.trim();
     if (req.body.nombres) req.body.nombres = req.body.nombres.trim();
     if (req.body.apellidos) req.body.apellidos = req.body.apellidos.trim();
@@ -179,6 +243,12 @@ export const desactivarAccesoUsuario = async (req, res) => {
     const usuario = await Usuario.findByPk(id);
     if (!usuario) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    // Protección: no se puede desactivar al administrador principal, al propio o al último admin activo
+    const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+    if (motivo) {
+      return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'desactivar') });
     }
 
     const credencial = await Credencial.findOne({ where: { id_usuario: id } });
@@ -244,6 +314,13 @@ export const eliminarUsuario = async (req, res) => {
       return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
     }
 
+    // Protección: no se puede eliminar al administrador principal, al propio o al último admin activo
+    const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+    if (motivo) {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'eliminar') });
+    }
+
     // Inactivar credenciales asociadas en la misma transacción si existen
     const credencial = await Credencial.findOne({ where: { id_usuario: id }, transaction });
     if (credencial) {
@@ -279,6 +356,13 @@ export const restaurarUsuario = async (req, res) => {
     }
 
     await usuario.restore();
+
+    // Reactivar la credencial asociada junto con el usuario
+    const credencial = await Credencial.findOne({ where: { id_usuario: id } });
+    if (credencial) {
+      await credencial.update({ estado: 'ACTIVA' });
+    }
+
     return res.status(200).json({ mensaje: 'Usuario restaurado correctamente', usuario });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al restaurar usuario', error: error.message });

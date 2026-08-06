@@ -3,8 +3,9 @@ import cors from 'cors';
 import router from './router/index.js';
 
 const app = express();
-app.use(cors());
-app.use(express.json());
+
+// Seguridad: cabeceras HTTP seguras
+app.use(helmet());
 
 // ===============================
 // Rutas (router centralizado)

@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { verifyToken } from '../middleware/auth.js';
+import { requireRol } from '../middleware/roles.js';
 import {
   obtenerConductores,
   obtenerConductorPorId,
@@ -11,21 +13,21 @@ import {
 const router = Router();
 
 // Obtener todos los conductores
-router.get('/', obtenerConductores);
+router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerConductores);
 
 // Obtener un conductor por ID
-router.get('/:id', obtenerConductorPorId);
+router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerConductorPorId);
 
 // Crear un nuevo conductor
-router.post('/', crearConductor);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearConductor);
 
 // Actualizar un conductor existente
-router.put('/:id', actualizarConductor);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarConductor);
 
 // Eliminar (soft delete) un conductor
-router.delete('/:id', eliminarConductor);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarConductor);
 
 // Restaurar un conductor eliminado lógicamente
-router.patch('/:id/restaurar', restaurarConductor);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarConductor);
 
 export default router;

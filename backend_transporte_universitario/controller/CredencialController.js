@@ -1,4 +1,6 @@
+import bcrypt from 'bcrypt';
 import { Credencial, Usuario } from '../models/index.js';
+import { motivoBloqueoGestion, mensajeMotivoBloqueo } from './helpers/proteccionAdministradores.js';
 
 export const obtenerCredencialPorUsuario = async (req, res) => {
   try {
@@ -6,6 +8,12 @@ export const obtenerCredencialPorUsuario = async (req, res) => {
 
     if (!id_usuario || isNaN(Number(id_usuario))) {
       return res.status(400).json({ mensaje: 'El ID de usuario proporcionado no es válido.' });
+    }
+
+    // Regla de negocio: solo el propio usuario o un administrador puede ver su credencial
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(req.user.id_usuario) !== Number(id_usuario)) {
+      return res.status(403).json({ mensaje: 'No tienes permiso para ver la credencial de otro usuario.' });
     }
 
     const credencial = await Credencial.findOne({
@@ -55,9 +63,11 @@ export const crearCredencial = async (req, res) => {
       return res.status(400).json({ mensaje: 'El usuario ya tiene una credencial registrada.' });
     }
 
+    const passwordHash = await bcrypt.hash(password, 10);
+
     const nuevaCredencial = await Credencial.create({
       id_usuario: Number(id_usuario),
-      password, // Idealmente se debería hashear con bcrypt antes de guardar
+      password: passwordHash,
       estado: 'ACTIVA'
     });
 
@@ -78,6 +88,14 @@ export const actualizarPassword = async (req, res) => {
       return res.status(400).json({ mensaje: 'El ID de usuario no es válido.' });
     }
 
+    // Regla de negocio: solo el propio usuario o un administrador puede cambiar la contraseña
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    const esElMismoUsuario = req.user && Number(req.user.id_usuario) === Number(id_usuario);
+
+    if (!esElMismoUsuario && !esAdministrativo) {
+      return res.status(403).json({ mensaje: 'No tienes permiso para cambiar la contraseña de otro usuario.' });
+    }
+
     if (!password || typeof password !== 'string' || !password.trim()) {
       return res.status(400).json({ mensaje: 'La nueva contraseña es obligatoria.' });
     }
@@ -91,7 +109,15 @@ export const actualizarPassword = async (req, res) => {
       return res.status(404).json({ mensaje: 'Credencial no encontrada.' });
     }
 
-    await credencial.update({ password });
+    const passwordHash = await bcrypt.hash(password, 10);
+
+    await credencial.update({ password: passwordHash });
+
+    // Cuando el propio usuario cambia su contraseña, ya no debe cambiar la contraseña
+    if (esElMismoUsuario) {
+      await credencial.update({ debe_cambiar_password: false });
+    }
+
     return res.status(200).json({ mensaje: 'Contraseña actualizada correctamente.' });
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al actualizar contraseña', error: error.message });
@@ -117,6 +143,18 @@ export const cambiarEstadoCredencial = async (req, res) => {
     const credencial = await Credencial.findOne({ where: { id_usuario } });
     if (!credencial) {
       return res.status(404).json({ mensaje: 'Credencial no encontrada.' });
+    }
+
+    // Protección: no se puede bloquear/desactivar al administrador principal, al propio o al último admin activo
+    if (estado === 'BLOQUEADA' || estado === 'INACTIVA') {
+      const usuario = await Usuario.findByPk(id_usuario);
+      if (usuario) {
+        const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+        if (motivo) {
+          const accion = estado === 'INACTIVA' ? 'desactivar' : 'bloquear';
+          return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, accion) });
+        }
+      }
     }
 
     await credencial.update({ estado });

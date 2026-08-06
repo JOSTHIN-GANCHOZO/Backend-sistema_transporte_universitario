@@ -1,8 +1,13 @@
-import { Reserva, Viaje, Usuario, sequelize } from '../models/index.js';
+import { Reserva, Viaje, Usuario, Autobus, sequelize } from '../models/index.js';
 
 export const obtenerReservas = async (req, res) => {
   try {
+    // Regla de negocio: un usuario no administrador solo ve sus propias reservas
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    const where = esAdministrativo ? {} : { id_usuario: req.user.id_usuario };
+
     const reservas = await Reserva.findAll({
+      where,
       include: [
         { model: Usuario, attributes: ['id_usuario', 'identificacion', 'nombres', 'apellidos', 'correo'] },
         { model: Viaje, attributes: ['id_viaje', 'fecha', 'hora_salida', 'estado', 'cupos_disponibles'] }
@@ -29,6 +34,12 @@ export const obtenerReservaPorId = async (req, res) => {
     if (!reserva) {
       return res.status(404).json({ mensaje: 'Reserva no encontrada.' });
     }
+
+    // Regla de negocio: un usuario no administrador solo accede a sus propias reservas
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(reserva.id_usuario) !== Number(req.user.id_usuario)) {
+      return res.status(404).json({ mensaje: 'Reserva no encontrada.' });
+    }
     return res.status(200).json(reserva);
   } catch (error) {
     return res.status(500).json({ mensaje: 'Error al obtener reserva', error: error.message });
@@ -36,7 +47,10 @@ export const obtenerReservaPorId = async (req, res) => {
 };
 
 export const crearReserva = async (req, res) => {
-  const { id_usuario, id_viaje, numero_asiento } = req.body;
+  // Regla de negocio: un usuario no administrador solo puede reservar para sí mismo
+  const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+  const id_usuario = esAdministrativo ? req.body.id_usuario : req.user.id_usuario;
+  const { id_viaje, numero_asiento } = req.body;
   const errores = [];
 
   // --- VALIDACIÓN DE PARÁMETROS ---
@@ -87,6 +101,15 @@ export const crearReserva = async (req, res) => {
     if (viaje.cupos_disponibles <= 0) {
       await transaction.rollback();
       return res.status(400).json({ mensaje: 'No hay cupos disponibles para este viaje.' });
+    }
+
+    // 4b. Validar que el número de asiento no exceda la capacidad del autobús
+    const autobus = await Autobus.findByPk(viaje.id_autobus, { transaction });
+    if (autobus && Number(numero_asiento) > autobus.capacidad_maxima) {
+      await transaction.rollback();
+      return res.status(400).json({
+        mensaje: `El número de asiento no puede ser mayor a la capacidad del autobús (${autobus.capacidad_maxima}).`
+      });
     }
 
     // 5. Máximo 1 reserva activa por usuario en el mismo viaje
@@ -158,6 +181,13 @@ export const cancelarReserva = async (req, res) => {
     });
 
     if (!reserva) {
+      await transaction.rollback();
+      return res.status(404).json({ mensaje: 'Reserva no encontrada.' });
+    }
+
+    // Regla de negocio: un usuario no administrador solo cancela sus propias reservas
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(reserva.id_usuario) !== Number(req.user.id_usuario)) {
       await transaction.rollback();
       return res.status(404).json({ mensaje: 'Reserva no encontrada.' });
     }
@@ -260,19 +290,32 @@ export const restaurarReserva = async (req, res) => {
     return res.status(400).json({ mensaje: 'El ID proporcionado no es válido.' });
   }
 
+  const transaction = await sequelize.transaction();
   try {
-    const reserva = await Reserva.findByPk(id, { paranoid: false });
+    const reserva = await Reserva.findByPk(id, { paranoid: false, transaction });
     if (!reserva) {
+      await transaction.rollback();
       return res.status(404).json({ mensaje: 'Reserva no encontrada.' });
     }
 
     if (reserva.fecha_eliminacion === null) {
+      await transaction.rollback();
       return res.status(400).json({ mensaje: 'La reserva ya se encuentra activa.' });
     }
 
-    await reserva.restore();
+    // Si la reserva restaurada estaba activa, se vuelve a descontar el cupo del viaje
+    if (reserva.estado === 'PENDIENTE' || reserva.estado === 'CONFIRMADA') {
+      const viaje = await Viaje.findByPk(reserva.id_viaje, { transaction });
+      if (viaje) {
+        await viaje.decrement('cupos_disponibles', { by: 1, transaction });
+      }
+    }
+
+    await reserva.restore({ transaction });
+    await transaction.commit();
     return res.status(200).json({ mensaje: 'Reserva restaurada correctamente', reserva });
   } catch (error) {
+    await transaction.rollback();
     return res.status(500).json({ mensaje: 'Error al restaurar reserva', error: error.message });
   }
 };

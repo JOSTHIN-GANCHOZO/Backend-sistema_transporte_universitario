@@ -91,6 +91,8 @@ export const actualizarPermiso = async (req, res) => {
       req.body.descripcion = req.body.descripcion.trim();
     }
 
+    delete req.body.id_permiso;
+
     await permiso.update(req.body);
     return res.status(200).json(permiso);
   } catch (error) {

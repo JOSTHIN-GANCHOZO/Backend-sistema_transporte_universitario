@@ -8,6 +8,12 @@ export const obtenerNotificacionesPorUsuario = async (req, res) => {
       return res.status(400).json({ mensaje: 'El ID de usuario no es válido.' });
     }
 
+    // Regla de negocio: un usuario no administrador solo ve sus propias notificaciones
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(req.user.id_usuario) !== Number(id_usuario)) {
+      return res.status(403).json({ mensaje: 'No tienes permiso para ver las notificaciones de otro usuario.' });
+    }
+
     const notificaciones = await Notificacion.findAll({
       where: { id_usuario: Number(id_usuario) },
       order: [['fecha_creacion', 'DESC']]
@@ -70,6 +76,12 @@ export const marcarNotificacionLeida = async (req, res) => {
 
     const notificacion = await Notificacion.findByPk(id);
     if (!notificacion) {
+      return res.status(404).json({ mensaje: 'Notificación no encontrada.' });
+    }
+
+    // Regla de negocio: un usuario no administrador solo marca sus propias notificaciones
+    const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
+    if (!esAdministrativo && Number(notificacion.id_usuario) !== Number(req.user.id_usuario)) {
       return res.status(404).json({ mensaje: 'Notificación no encontrada.' });
     }
 

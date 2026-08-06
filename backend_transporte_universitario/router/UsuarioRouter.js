@@ -1,4 +1,6 @@
 import { Router } from 'express';
+import { verifyToken } from '../middleware/auth.js';
+import { requireRol } from '../middleware/roles.js';
 import {
   obtenerUsuarios,
   obtenerUsuarioPorId,
@@ -12,14 +14,14 @@ import {
 
 const router = Router();
 // --- RUTAS PRINCIPALES (CRUD) ---
-router.get('/', obtenerUsuarios);
-router.get('/:id', obtenerUsuarioPorId);
-router.post('/', crearUsuario);
-router.put('/:id', actualizarUsuario);
-router.delete('/:id', eliminarUsuario);
+router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerUsuarios);
+router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerUsuarioPorId);
+router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearUsuario);
+router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarUsuario);
+router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarUsuario);
 // --- RUTAS DE ESTADO Y CREDENCIALES ---
-router.patch('/:id/desactivar-acceso', desactivarAccesoUsuario);
-router.patch('/:id/activar-acceso', activarAccesoUsuario);
-router.patch('/:id/restaurar', restaurarUsuario);
+router.patch('/:id/desactivar-acceso', verifyToken, requireRol(['ADMINISTRATIVO']), desactivarAccesoUsuario);
+router.patch('/:id/activar-acceso', verifyToken, requireRol(['ADMINISTRATIVO']), activarAccesoUsuario);
+router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarUsuario);
 
 export default router;
