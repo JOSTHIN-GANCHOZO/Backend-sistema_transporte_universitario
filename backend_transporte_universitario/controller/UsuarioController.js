@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Usuario, Rol, Credencial, sequelize } from '../models/index.js';
+import { motivoBloqueoGestion, mensajeMotivoBloqueo } from './helpers/proteccionAdministradores.js';
 
 const coherenciaTipoRol = (tipoUsuario, rolNombre) => {
   if (rolNombre === 'ADMINISTRATIVO' && tipoUsuario !== 'ADMINISTRATIVO') {
@@ -203,6 +204,15 @@ export const actualizarUsuario = async (req, res) => {
       }
     }
 
+    // Protección: no se puede degradar a un administrador protegido (principal, el propio o el último activo)
+    const rolActual = await usuario.getRol();
+    if (rolActual?.nombre === 'ADMINISTRATIVO' && rolFinal?.nombre !== 'ADMINISTRATIVO') {
+      const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+      if (motivo) {
+        return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'degradar') });
+      }
+    }
+
     // Formatting payloads
     delete req.body.id_usuario;
     if (req.body.identificacion) req.body.identificacion = req.body.identificacion.trim();
@@ -233,6 +243,12 @@ export const desactivarAccesoUsuario = async (req, res) => {
     const usuario = await Usuario.findByPk(id);
     if (!usuario) {
       return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    // Protección: no se puede desactivar al administrador principal, al propio o al último admin activo
+    const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+    if (motivo) {
+      return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'desactivar') });
     }
 
     const credencial = await Credencial.findOne({ where: { id_usuario: id } });
@@ -296,6 +312,13 @@ export const eliminarUsuario = async (req, res) => {
     if (!usuario) {
       await transaction.rollback();
       return res.status(404).json({ mensaje: 'Usuario no encontrado.' });
+    }
+
+    // Protección: no se puede eliminar al administrador principal, al propio o al último admin activo
+    const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
+    if (motivo) {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'eliminar') });
     }
 
     // Inactivar credenciales asociadas en la misma transacción si existen
