@@ -100,8 +100,16 @@ export const actualizarPassword = async (req, res) => {
       return res.status(400).json({ mensaje: 'La nueva contraseña es obligatoria.' });
     }
 
-    if (password.trim().length < 6) {
-      return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres.' });
+    if (password.trim().length < 8) {
+      return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 8 caracteres.' });
+    }
+
+    if ((password.match(/\d/g) ?? []).length < 2) {
+      return res.status(400).json({ mensaje: 'La contraseña debe incluir al menos 2 números.' });
+    }
+
+    if (!password.includes('.')) {
+      return res.status(400).json({ mensaje: 'La contraseña debe incluir al menos un punto (.).' });
     }
 
     const credencial = await Credencial.findOne({ where: { id_usuario } });
