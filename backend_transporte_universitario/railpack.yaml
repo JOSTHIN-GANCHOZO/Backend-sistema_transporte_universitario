@@ -1,0 +1,4 @@
+deploy:
+  build:
+    - npm install
+  start: npm start
