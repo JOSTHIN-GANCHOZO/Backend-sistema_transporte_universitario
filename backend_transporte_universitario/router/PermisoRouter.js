@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { verifyToken } from '../middleware/auth.js';
-import { requireRol } from '../middleware/roles.js';
+import { requireRol, requireAdminPrincipal } from '../middleware/roles.js';
 import {
   obtenerPermisos,
   obtenerPermisoPorId,
@@ -19,15 +19,15 @@ router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerPermisos);
 router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerPermisoPorId);
 
 // Crear un nuevo permiso
-router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearPermiso);
+router.post('/', verifyToken, requireAdminPrincipal, crearPermiso);
 
 // Actualizar un permiso existente
-router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarPermiso);
+router.put('/:id', verifyToken, requireAdminPrincipal, actualizarPermiso);
 
 // Eliminar (soft delete) un permiso
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarPermiso);
+router.delete('/:id', verifyToken, requireAdminPrincipal, eliminarPermiso);
 
 // Restaurar un permiso eliminado lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarPermiso);
+router.patch('/:id/restaurar', verifyToken, requireAdminPrincipal, restaurarPermiso);
 
 export default router;

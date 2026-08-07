@@ -62,7 +62,7 @@ export const crearReserva = async (req, res) => {
     errores.push({ campo: 'id_viaje', mensaje: 'El ID de viaje es obligatorio.' });
   }
 
-  if (!numero_asiento || isNaN(Number(numero_asiento)) || Number(numero_asiento) <= 0) {
+  if (!numero_asiento || isNaN(Number(numero_asiento)) || !Number.isInteger(Number(numero_asiento)) || Number(numero_asiento) <= 0) {
     errores.push({ campo: 'numero_asiento', mensaje: 'El número de asiento debe ser un entero positivo.' });
   }
 
@@ -105,7 +105,12 @@ export const crearReserva = async (req, res) => {
 
     // 4b. Validar que el número de asiento no exceda la capacidad del autobús
     const autobus = await Autobus.findByPk(viaje.id_autobus, { transaction });
-    if (autobus && Number(numero_asiento) > autobus.capacidad_maxima) {
+    if (!autobus || autobus.capacidad_maxima == null) {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: 'El autobús asociado al viaje no tiene capacidad definida.' });
+    }
+
+    if (Number(numero_asiento) > autobus.capacidad_maxima) {
       await transaction.rollback();
       return res.status(400).json({
         mensaje: `El número de asiento no puede ser mayor a la capacidad del autobús (${autobus.capacidad_maxima}).`

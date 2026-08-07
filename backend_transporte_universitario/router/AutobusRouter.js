@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { verifyToken } from '../middleware/auth.js';
-import { requireRol } from '../middleware/roles.js';
+import { requireRol, requireAdminPrincipal } from '../middleware/roles.js';
 import {
   obtenerAutobuses,
   obtenerAutobusPorId,
@@ -19,15 +19,15 @@ router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerAutobuses);
 router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerAutobusPorId);
 
 // Crear un nuevo autobús
-router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearAutobus);
+router.post('/', verifyToken, requireAdminPrincipal, crearAutobus);
 
 // Actualizar un autobús existente
-router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarAutobus);
+router.put('/:id', verifyToken, requireAdminPrincipal, actualizarAutobus);
 
 // Eliminar (soft delete) un autobús
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarAutobus);
+router.delete('/:id', verifyToken, requireAdminPrincipal, eliminarAutobus);
 
 // Restaurar un autobús eliminado lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarAutobus);
+router.patch('/:id/restaurar', verifyToken, requireAdminPrincipal, restaurarAutobus);
 
 export default router;

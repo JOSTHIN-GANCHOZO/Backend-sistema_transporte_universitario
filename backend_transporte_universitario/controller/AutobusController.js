@@ -24,7 +24,7 @@ export const obtenerAutobusPorId = async (req, res) => {
 
 export const crearAutobus = async (req, res) => {
   try {
-    const { placa, numero_interno, marca, modelo, año, capacidad_maxima, estado } = req.body;
+    const { placa, numero_interno, marca, modelo, año, capacidad_maxima } = req.body;
 
     if (capacidad_maxima <= 0) {
       return res.status(400).json({ mensaje: 'La capacidad máxima debe ser mayor a 0.' });
@@ -37,7 +37,7 @@ export const crearAutobus = async (req, res) => {
       modelo,
       año,
       capacidad_maxima,
-      estado: estado || 'DISPONIBLE'
+      estado: 'DISPONIBLE'
     });
 
     return res.status(201).json(nuevoAutobus);
@@ -64,6 +64,8 @@ export const actualizarAutobus = async (req, res) => {
     }
 
     delete req.body.id_autobus;
+    // El estado del autobús es gestionado automáticamente por el sistema (mantenimientos, viajes)
+    delete req.body.estado;
 
     await autobus.update(req.body);
     return res.status(200).json(autobus);

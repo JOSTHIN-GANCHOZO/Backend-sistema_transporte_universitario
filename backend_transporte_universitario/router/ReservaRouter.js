@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { verifyToken } from '../middleware/auth.js';
-import { requireRol } from '../middleware/roles.js';
+import { requireRol, requireAdminPrincipal } from '../middleware/roles.js';
 import {
   obtenerReservas,
   obtenerReservaPorId,
@@ -26,12 +26,12 @@ router.post('/', verifyToken, crearReserva);
 router.patch('/:id/cancelar', verifyToken, cancelarReserva);
 
 // Marcar reserva como utilizada
-router.patch('/:id/utilizar', verifyToken, requireRol(['ADMINISTRATIVO']), utilizarReserva);
+router.patch('/:id/utilizar', verifyToken, requireAdminPrincipal, utilizarReserva);
 
 // Eliminar (soft delete) una reserva
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarReserva);
+router.delete('/:id', verifyToken, requireAdminPrincipal, eliminarReserva);
 
 // Restaurar una reserva eliminada lógicamente
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarReserva);
+router.patch('/:id/restaurar', verifyToken, requireAdminPrincipal, restaurarReserva);
 
 export default router;
