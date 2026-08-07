@@ -42,6 +42,11 @@ export const UsuarioModel = sequelize.define('Usuario', {
       model: 'Rol',
       key: 'id_rol'
     }
+  },
+  es_admin_principal: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false,
+    defaultValue: false
   }
 }, {
   tableName: 'Usuario',

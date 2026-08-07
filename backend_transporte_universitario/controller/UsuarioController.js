@@ -53,7 +53,7 @@ export const obtenerUsuarioPorId = async (req, res) => {
 export const crearUsuario = async (req, res) => {
   const transaction = await sequelize.transaction();
   try {
-    const { identificacion, nombres, apellidos, correo, telefono, tipo_usuario, id_rol } = req.body;
+    const { identificacion, nombres, apellidos, correo, telefono, tipo_usuario, id_rol, es_admin_principal } = req.body;
     const errores = [];
 
     // --- VALIDACIONES DE ENTRADA ---
@@ -94,6 +94,11 @@ export const crearUsuario = async (req, res) => {
       return res.status(400).json({ mensaje: 'El ID de rol especificado no existe.' });
     }
 
+    if (es_admin_principal && rolExiste.nombre !== 'ADMINISTRATIVO') {
+      await transaction.rollback();
+      return res.status(400).json({ mensaje: 'Un administrador principal debe tener el rol ADMINISTRATIVO.' });
+    }
+
     // Regla de coherencia: el tipo de usuario debe ser compatible con el rol
     const incoherencia = coherenciaTipoRol(tipo_usuario, rolExiste.nombre);
     if (incoherencia) {
@@ -127,7 +132,8 @@ export const crearUsuario = async (req, res) => {
       correo: correoLimpio,
       telefono: telefono ? telefono.trim() : null,
       tipo_usuario,
-      id_rol: Number(id_rol)
+      id_rol: Number(id_rol),
+      es_admin_principal: es_admin_principal === true
     }, { transaction });
 
     // Crear la credencial del usuario con la identificación como contraseña temporal
@@ -191,6 +197,10 @@ export const actualizarUsuario = async (req, res) => {
       }
     }
 
+    if (req.body.es_admin_principal !== undefined && typeof req.body.es_admin_principal !== 'boolean') {
+      return res.status(400).json({ mensaje: 'El campo es_admin_principal debe ser un valor booleano.' });
+    }
+
     // Regla de coherencia: el tipo de usuario resultante debe ser compatible con el rol resultante
     const idRolFinal = req.body.id_rol ? Number(req.body.id_rol) : usuario.id_rol;
     const rolFinal = await Rol.findByPk(idRolFinal);
@@ -204,12 +214,16 @@ export const actualizarUsuario = async (req, res) => {
       }
     }
 
-    // Protección: no se puede degradar a un administrador protegido (principal, el propio o el último activo)
-    const rolActual = await usuario.getRol();
-    if (rolActual?.nombre === 'ADMINISTRATIVO' && rolFinal?.nombre !== 'ADMINISTRATIVO') {
+    // Protección: no se puede quitar la capacidad de edición (flag o rol) a un admin principal
+    // si es el propio usuario o el último administrador principal activo
+    const esPrincipal = usuario.es_admin_principal === true;
+    const pierdeCapacidadEdicion =
+      (esPrincipal && req.body.es_admin_principal === false) ||
+      (esPrincipal && rolFinal?.nombre !== 'ADMINISTRATIVO');
+    if (pierdeCapacidadEdicion) {
       const motivo = await motivoBloqueoGestion(usuario, req.user.id_usuario);
       if (motivo) {
-        return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'degradar') });
+        return res.status(400).json({ mensaje: mensajeMotivoBloqueo(motivo, 'quitar los permisos de edición a') });
       }
     }
 

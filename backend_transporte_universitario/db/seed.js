@@ -10,6 +10,16 @@ async function seed() {
     await sequelize.sync();
     console.log('✅ Tablas sincronizadas.');
 
+    const tablaUsuarios = await sequelize.getQueryInterface().describeTable(Usuario.tableName);
+    if (!tablaUsuarios.es_admin_principal) {
+      await sequelize.getQueryInterface().addColumn(Usuario.tableName, 'es_admin_principal', {
+        type: sequelize.Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
+      });
+      console.log('✅ Columna es_admin_principal agregada a la tabla Usuario.');
+    }
+
     let rolAdmin = await Rol.findOne({ where: { nombre: 'ADMINISTRATIVO' } });
     if (!rolAdmin) {
       const rolAntiguo = await Rol.findOne({ where: { nombre: 'ADMINISTRADOR' } });
@@ -65,10 +75,16 @@ async function seed() {
         apellidos: ADMIN_APELLIDOS || 'del Sistema',
         correo: ADMIN_CORREO.toLowerCase(),
         tipo_usuario: 'ADMINISTRATIVO',
-        id_rol: rolAdmin.id_rol
+        id_rol: rolAdmin.id_rol,
+        es_admin_principal: true
       });
       console.log('✅ Usuario administrador creado.');
     } else {
+      // Garantizar que el administrador principal del sistema conserve el flag de edición
+      if (!admin.es_admin_principal) {
+        await admin.update({ es_admin_principal: true });
+        console.log('↔️  Flag es_admin_principal activado para el administrador principal.');
+      }
       console.log('ℹ️  El usuario administrador ya existe.');
     }
 
