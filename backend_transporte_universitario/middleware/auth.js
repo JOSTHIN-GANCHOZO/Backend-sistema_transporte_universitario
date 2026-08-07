@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { Usuario, Credencial } from "../models/index.js";
+import { Usuario, Credencial, Rol } from "../models/index.js";
 import { TOKEN_KEY } from "../config/config.js";
 
 export const verifyToken = async (req, res, next) => {
@@ -16,7 +16,9 @@ export const verifyToken = async (req, res, next) => {
     req.user = user;
 
     // Revalidar en BD que el usuario siga activo y su credencial no esté bloqueada/inactiva
-    const usuario = await Usuario.findByPk(user.id_usuario);
+    const usuario = await Usuario.findByPk(user.id_usuario, {
+      include: [{ model: Rol, attributes: ['id_rol', 'nombre'] }]
+    });
     if (!usuario) {
       return res.status(401).json({ mensaje: 'Token inválido.' });
     }
@@ -25,6 +27,12 @@ export const verifyToken = async (req, res, next) => {
     if (!credencial || credencial.estado !== 'ACTIVA') {
       return res.status(401).json({ mensaje: 'Token inválido.' });
     }
+
+    // Refrescar datos de autorización desde BD para que cambios de rol/flags sean inmediatos
+    req.user.id_rol = usuario.id_rol;
+    req.user.correo = usuario.correo;
+    req.user.es_admin_principal = usuario.es_admin_principal;
+    req.user.rol = usuario.Rol ? usuario.Rol.nombre : null;
 
     next();
   } catch (err) {

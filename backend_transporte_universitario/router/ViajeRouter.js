@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { verifyToken } from '../middleware/auth.js';
-import { requireRol } from '../middleware/roles.js';
+import { requireRol, requireAdminPrincipal } from '../middleware/roles.js';
 import {
   obtenerViajes,
   obtenerViajePorId,
@@ -19,15 +19,15 @@ router.get('/', verifyToken, obtenerViajes);
 router.get('/:id', verifyToken, obtenerViajePorId);
 
 // Crear un nuevo viaje
-router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearViaje);
+router.post('/', verifyToken, requireAdminPrincipal, crearViaje);
 
 // Actualizar el estado de un viaje
-router.patch('/:id/estado', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarEstadoViaje);
+router.patch('/:id/estado', verifyToken, requireAdminPrincipal, actualizarEstadoViaje);
 
 // Borrado lógico de un viaje
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarViaje);
+router.delete('/:id', verifyToken, requireAdminPrincipal, eliminarViaje);
 
 // Restaurar un viaje deshabilitado
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarViaje);
+router.patch('/:id/restaurar', verifyToken, requireAdminPrincipal, restaurarViaje);
 
 export default router;

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { verifyToken } from '../middleware/auth.js';
-import { requireRol } from '../middleware/roles.js';
+import { requireRol, requireAdminPrincipal } from '../middleware/roles.js';
 import {
   obtenerMantenimientos,
   obtenerMantenimientoPorId,
@@ -19,15 +19,15 @@ router.get('/', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerMantenimient
 router.get('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), obtenerMantenimientoPorId);
 
 // Crear mantenimiento
-router.post('/', verifyToken, requireRol(['ADMINISTRATIVO']), crearMantenimiento);
+router.post('/', verifyToken, requireAdminPrincipal, crearMantenimiento);
 
 // Actualizar mantenimiento
-router.put('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), actualizarMantenimiento);
+router.put('/:id', verifyToken, requireAdminPrincipal, actualizarMantenimiento);
 
 // Eliminar (soft delete)
-router.delete('/:id', verifyToken, requireRol(['ADMINISTRATIVO']), eliminarMantenimiento);
+router.delete('/:id', verifyToken, requireAdminPrincipal, eliminarMantenimiento);
 
 // Restaurar mantenimiento
-router.patch('/:id/restaurar', verifyToken, requireRol(['ADMINISTRATIVO']), restaurarMantenimiento);
+router.patch('/:id/restaurar', verifyToken, requireAdminPrincipal, restaurarMantenimiento);
 
 export default router;
