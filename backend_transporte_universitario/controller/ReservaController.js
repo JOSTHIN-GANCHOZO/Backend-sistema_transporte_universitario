@@ -47,11 +47,20 @@ export const obtenerReservaPorId = async (req, res) => {
 };
 
 export const crearReserva = async (req, res) => {
-  // Regla de negocio: un usuario no administrador solo puede reservar para sí mismo
+  // Regla de negocio: un pasajero solo puede reservar para sí mismo.
+  // Un administrativo puede reservar para sí mismo (sin id_usuario) o en
+  // nombre de otro usuario (enviando id_usuario, modo taquilla).
   const esAdministrativo = req.user && req.user.rol === 'ADMINISTRATIVO';
-  const id_usuario = esAdministrativo ? req.body.id_usuario : req.user.id_usuario;
+  const idUsuarioSolicitado = req.body.id_usuario;
+  const reservaParaOtro = esAdministrativo && idUsuarioSolicitado != null;
+  const id_usuario = reservaParaOtro ? idUsuarioSolicitado : req.user.id_usuario;
   const { id_viaje, numero_asiento } = req.body;
   const errores = [];
+
+  // Un pasajero nunca puede reservar en nombre de otro usuario
+  if (!esAdministrativo && idUsuarioSolicitado != null && Number(idUsuarioSolicitado) !== Number(req.user.id_usuario)) {
+    return res.status(403).json({ mensaje: 'No tiene permisos para reservar en nombre de otro usuario.' });
+  }
 
   // --- VALIDACIÓN DE PARÁMETROS ---
   if (!id_usuario || isNaN(Number(id_usuario))) {
